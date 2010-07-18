@@ -1,0 +1,127 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 1991-2009 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+*/
+(header "symbol" (version "1.1"))
+(symbol
+	(rect 16 16 352 176)
+	(text "i2s_intf" (rect 5 0 41 12)(font "Arial" ))
+	(text "inst" (rect 8 144 25 156)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "CLK" (rect 0 0 21 12)(font "Arial" ))
+		(text "CLK" (rect 21 27 42 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32)(line_width 1))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "nRESET" (rect 0 0 41 12)(font "Arial" ))
+		(text "nRESET" (rect 21 43 62 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48)(line_width 1))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "PCM_OUTL[word_length-1..0]" (rect 0 0 145 12)(font "Arial" ))
+		(text "PCM_OUTL[word_length-1..0]" (rect 21 59 166 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64)(line_width 3))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "PCM_OUTR[word_length-1..0]" (rect 0 0 147 12)(font "Arial" ))
+		(text "PCM_OUTR[word_length-1..0]" (rect 21 75 168 87)(font "Arial" ))
+		(line (pt 0 80)(pt 16 80)(line_width 3))
+	)
+	(port
+		(pt 0 96)
+		(input)
+		(text "I2S_DIN" (rect 0 0 42 12)(font "Arial" ))
+		(text "I2S_DIN" (rect 21 91 63 103)(font "Arial" ))
+		(line (pt 0 96)(pt 16 96)(line_width 1))
+	)
+	(port
+		(pt 336 32)
+		(output)
+		(text "PCM_INL[word_length-1..0]" (rect 0 0 134 12)(font "Arial" ))
+		(text "PCM_INL[word_length-1..0]" (rect 181 27 315 39)(font "Arial" ))
+		(line (pt 336 32)(pt 320 32)(line_width 3))
+	)
+	(port
+		(pt 336 48)
+		(output)
+		(text "PCM_INR[word_length-1..0]" (rect 0 0 136 12)(font "Arial" ))
+		(text "PCM_INR[word_length-1..0]" (rect 179 43 315 55)(font "Arial" ))
+		(line (pt 336 48)(pt 320 48)(line_width 3))
+	)
+	(port
+		(pt 336 64)
+		(output)
+		(text "I2S_MCLK" (rect 0 0 51 12)(font "Arial" ))
+		(text "I2S_MCLK" (rect 264 59 315 71)(font "Arial" ))
+		(line (pt 336 64)(pt 320 64)(line_width 1))
+	)
+	(port
+		(pt 336 80)
+		(output)
+		(text "I2S_LRCLK" (rect 0 0 57 12)(font "Arial" ))
+		(text "I2S_LRCLK" (rect 258 75 315 87)(font "Arial" ))
+		(line (pt 336 80)(pt 320 80)(line_width 1))
+	)
+	(port
+		(pt 336 96)
+		(output)
+		(text "I2S_BCLK" (rect 0 0 50 12)(font "Arial" ))
+		(text "I2S_BCLK" (rect 265 91 315 103)(font "Arial" ))
+		(line (pt 336 96)(pt 320 96)(line_width 1))
+	)
+	(port
+		(pt 336 112)
+		(output)
+		(text "I2S_DOUT" (rect 0 0 53 12)(font "Arial" ))
+		(text "I2S_DOUT" (rect 262 107 315 119)(font "Arial" ))
+		(line (pt 336 112)(pt 320 112)(line_width 1))
+	)
+	(parameter
+		"mclk_rate"
+		"12000000"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"sample_rate"
+		"8000"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"preamble"
+		"1"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"word_length"
+		"16"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(drawing
+		(rectangle (rect 16 16 320 144)(line_width 1))
+	)
+	(annotation_block (parameter)(rect 352 -64 452 16))
+)

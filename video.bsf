@@ -1,0 +1,176 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 1991-2009 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+*/
+(header "symbol" (version "1.1"))
+(symbol
+	(rect 16 16 224 304)
+	(text "video" (rect 5 0 32 12)(font "Arial" ))
+	(text "inst" (rect 8 272 25 284)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "CLK" (rect 0 0 21 12)(font "Arial" ))
+		(text "CLK" (rect 21 27 42 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32)(line_width 1))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "CLKEN" (rect 0 0 36 12)(font "Arial" ))
+		(text "CLKEN" (rect 21 43 57 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48)(line_width 1))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "nRESET" (rect 0 0 41 12)(font "Arial" ))
+		(text "nRESET" (rect 21 59 62 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64)(line_width 1))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "VGA" (rect 0 0 22 12)(font "Arial" ))
+		(text "VGA" (rect 21 75 43 87)(font "Arial" ))
+		(line (pt 0 80)(pt 16 80)(line_width 1))
+	)
+	(port
+		(pt 0 96)
+		(input)
+		(text "VID_D_IN[7..0]" (rect 0 0 76 12)(font "Arial" ))
+		(text "VID_D_IN[7..0]" (rect 21 91 97 103)(font "Arial" ))
+		(line (pt 0 96)(pt 16 96)(line_width 3))
+	)
+	(port
+		(pt 0 112)
+		(input)
+		(text "BORDER_IN[2..0]" (rect 0 0 90 12)(font "Arial" ))
+		(text "BORDER_IN[2..0]" (rect 21 107 111 119)(font "Arial" ))
+		(line (pt 0 112)(pt 16 112)(line_width 3))
+	)
+	(port
+		(pt 208 32)
+		(output)
+		(text "VID_A[12..0]" (rect 0 0 63 12)(font "Arial" ))
+		(text "VID_A[12..0]" (rect 124 27 187 39)(font "Arial" ))
+		(line (pt 208 32)(pt 192 32)(line_width 3))
+	)
+	(port
+		(pt 208 48)
+		(output)
+		(text "nVID_RD" (rect 0 0 47 12)(font "Arial" ))
+		(text "nVID_RD" (rect 140 43 187 55)(font "Arial" ))
+		(line (pt 208 48)(pt 192 48)(line_width 1))
+	)
+	(port
+		(pt 208 64)
+		(output)
+		(text "nWAIT" (rect 0 0 33 12)(font "Arial" ))
+		(text "nWAIT" (rect 154 59 187 71)(font "Arial" ))
+		(line (pt 208 64)(pt 192 64)(line_width 1))
+	)
+	(port
+		(pt 208 80)
+		(output)
+		(text "R[3..0]" (rect 0 0 34 12)(font "Arial" ))
+		(text "R[3..0]" (rect 153 75 187 87)(font "Arial" ))
+		(line (pt 208 80)(pt 192 80)(line_width 3))
+	)
+	(port
+		(pt 208 96)
+		(output)
+		(text "G[3..0]" (rect 0 0 34 12)(font "Arial" ))
+		(text "G[3..0]" (rect 153 91 187 103)(font "Arial" ))
+		(line (pt 208 96)(pt 192 96)(line_width 3))
+	)
+	(port
+		(pt 208 112)
+		(output)
+		(text "B[3..0]" (rect 0 0 33 12)(font "Arial" ))
+		(text "B[3..0]" (rect 154 107 187 119)(font "Arial" ))
+		(line (pt 208 112)(pt 192 112)(line_width 3))
+	)
+	(port
+		(pt 208 128)
+		(output)
+		(text "nVSYNC" (rect 0 0 44 12)(font "Arial" ))
+		(text "nVSYNC" (rect 143 123 187 135)(font "Arial" ))
+		(line (pt 208 128)(pt 192 128)(line_width 1))
+	)
+	(port
+		(pt 208 144)
+		(output)
+		(text "nHSYNC" (rect 0 0 46 12)(font "Arial" ))
+		(text "nHSYNC" (rect 141 139 187 151)(font "Arial" ))
+		(line (pt 208 144)(pt 192 144)(line_width 1))
+	)
+	(port
+		(pt 208 160)
+		(output)
+		(text "nCSYNC" (rect 0 0 46 12)(font "Arial" ))
+		(text "nCSYNC" (rect 141 155 187 167)(font "Arial" ))
+		(line (pt 208 160)(pt 192 160)(line_width 1))
+	)
+	(port
+		(pt 208 176)
+		(output)
+		(text "nHCSYNC" (rect 0 0 54 12)(font "Arial" ))
+		(text "nHCSYNC" (rect 133 171 187 183)(font "Arial" ))
+		(line (pt 208 176)(pt 192 176)(line_width 1))
+	)
+	(port
+		(pt 208 192)
+		(output)
+		(text "IS_BORDER" (rect 0 0 63 12)(font "Arial" ))
+		(text "IS_BORDER" (rect 124 187 187 199)(font "Arial" ))
+		(line (pt 208 192)(pt 192 192)(line_width 1))
+	)
+	(port
+		(pt 208 208)
+		(output)
+		(text "IS_VALID" (rect 0 0 48 12)(font "Arial" ))
+		(text "IS_VALID" (rect 139 203 187 215)(font "Arial" ))
+		(line (pt 208 208)(pt 192 208)(line_width 1))
+	)
+	(port
+		(pt 208 224)
+		(output)
+		(text "PIXCLK" (rect 0 0 37 12)(font "Arial" ))
+		(text "PIXCLK" (rect 150 219 187 231)(font "Arial" ))
+		(line (pt 208 224)(pt 192 224)(line_width 1))
+	)
+	(port
+		(pt 208 240)
+		(output)
+		(text "FLASHCLK" (rect 0 0 56 12)(font "Arial" ))
+		(text "FLASHCLK" (rect 131 235 187 247)(font "Arial" ))
+		(line (pt 208 240)(pt 192 240)(line_width 1))
+	)
+	(port
+		(pt 208 256)
+		(output)
+		(text "nIRQ" (rect 0 0 25 12)(font "Arial" ))
+		(text "nIRQ" (rect 162 251 187 263)(font "Arial" ))
+		(line (pt 208 256)(pt 192 256)(line_width 1))
+	)
+	(drawing
+		(rectangle (rect 16 16 192 272)(line_width 1))
+	)
+)
