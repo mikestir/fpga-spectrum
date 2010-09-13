@@ -2774,21 +2774,6 @@ applicable agreement for further details.
 	(pt 408 -176)
 )
 (connector
-	(pt 624 -400)
-	(pt 656 -400)
-	(bus)
-)
-(connector
-	(pt 656 -400)
-	(pt 656 -256)
-	(bus)
-)
-(connector
-	(pt 656 -256)
-	(pt 936 -256)
-	(bus)
-)
-(connector
 	(text "A[13..0]" (rect 346 -272 384 -260)(font "Arial" ))
 	(pt 336 -256)
 	(pt 408 -256)
@@ -2798,6 +2783,11 @@ applicable agreement for further details.
 	(text "A[12..0]" (rect 346 -416 384 -404)(font "Arial" ))
 	(pt 336 -400)
 	(pt 408 -400)
+	(bus)
+)
+(connector
+	(pt 624 -256)
+	(pt 936 -256)
 	(bus)
 )
 (junction (pt 472 120))
