@@ -58,13 +58,6 @@ applicable agreement for further details.
 		(text "CLKEN_VID" (rect 78 43 139 55)(font "Arial" ))
 		(line (pt 160 48)(pt 144 48)(line_width 1))
 	)
-	(port
-		(pt 160 64)
-		(output)
-		(text "CLKEN_I2C" (rect 0 0 60 12)(font "Arial" ))
-		(text "CLKEN_I2C" (rect 79 59 139 71)(font "Arial" ))
-		(line (pt 160 64)(pt 144 64)(line_width 1))
-	)
 	(drawing
 		(rectangle (rect 16 16 144 80)(line_width 1))
 	)

@@ -1735,56 +1735,6 @@ applicable agreement for further details.
 	)
 )
 (symbol
-	(rect -8 136 152 232)
-	(text "clocks" (rect 5 0 36 12)(font "Arial" ))
-	(text "inst9" (rect 8 80 31 92)(font "Arial" ))
-	(port
-		(pt 0 32)
-		(input)
-		(text "CLK" (rect 0 0 21 12)(font "Arial" ))
-		(text "CLK" (rect 21 27 42 39)(font "Arial" ))
-		(line (pt 0 32)(pt 16 32)(line_width 1))
-	)
-	(port
-		(pt 0 48)
-		(input)
-		(text "nRESET" (rect 0 0 41 12)(font "Arial" ))
-		(text "nRESET" (rect 21 43 62 55)(font "Arial" ))
-		(line (pt 0 48)(pt 16 48)(line_width 1))
-	)
-	(port
-		(pt 0 64)
-		(input)
-		(text "SLOW" (rect 0 0 31 12)(font "Arial" ))
-		(text "SLOW" (rect 21 59 52 71)(font "Arial" ))
-		(line (pt 0 64)(pt 16 64)(line_width 1))
-	)
-	(port
-		(pt 160 32)
-		(output)
-		(text "CLKEN_CPU" (rect 0 0 66 12)(font "Arial" ))
-		(text "CLKEN_CPU" (rect 73 27 139 39)(font "Arial" ))
-		(line (pt 160 32)(pt 144 32)(line_width 1))
-	)
-	(port
-		(pt 160 48)
-		(output)
-		(text "CLKEN_VID" (rect 0 0 61 12)(font "Arial" ))
-		(text "CLKEN_VID" (rect 78 43 139 55)(font "Arial" ))
-		(line (pt 160 48)(pt 144 48)(line_width 1))
-	)
-	(port
-		(pt 160 64)
-		(output)
-		(text "CLKEN_I2C" (rect 0 0 60 12)(font "Arial" ))
-		(text "CLKEN_I2C" (rect 79 59 139 71)(font "Arial" ))
-		(line (pt 160 64)(pt 144 64)(line_width 1))
-	)
-	(drawing
-		(rectangle (rect 16 16 144 80)(line_width 1))
-	)
-)
-(symbol
 	(rect 1520 208 1856 368)
 	(text "i2s_intf" (rect 5 0 41 12)(font "Arial" ))
 	(text "inst31" (rect 8 144 37 156)(font "Arial" ))
@@ -1904,16 +1854,9 @@ applicable agreement for further details.
 	(port
 		(pt 0 48)
 		(input)
-		(text "CLKEN" (rect 0 0 36 12)(font "Arial" ))
-		(text "CLKEN" (rect 21 43 57 55)(font "Arial" ))
-		(line (pt 0 48)(pt 16 48)(line_width 1))
-	)
-	(port
-		(pt 0 64)
-		(input)
 		(text "nRESET" (rect 0 0 41 12)(font "Arial" ))
-		(text "nRESET" (rect 21 59 62 71)(font "Arial" ))
-		(line (pt 0 64)(pt 16 64)(line_width 1))
+		(text "nRESET" (rect 21 43 62 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48)(line_width 1))
 	)
 	(port
 		(pt 152 64)
@@ -1948,10 +1891,63 @@ applicable agreement for further details.
 		"26"
 		""
 		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"num_retries"
+		"0"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"log2_divider"
+		"5"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
 	(drawing
 		(rectangle (rect 16 16 136 112)(line_width 1))
 	)
 	(annotation_block (parameter)(rect 1856 368 2048 400))
+)
+(symbol
+	(rect -8 136 152 232)
+	(text "clocks" (rect 5 0 36 12)(font "Arial" ))
+	(text "inst9" (rect 8 80 31 92)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "CLK" (rect 0 0 21 12)(font "Arial" ))
+		(text "CLK" (rect 21 27 42 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32)(line_width 1))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "nRESET" (rect 0 0 41 12)(font "Arial" ))
+		(text "nRESET" (rect 21 43 62 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48)(line_width 1))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "SLOW" (rect 0 0 31 12)(font "Arial" ))
+		(text "SLOW" (rect 21 59 52 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64)(line_width 1))
+	)
+	(port
+		(pt 160 32)
+		(output)
+		(text "CLKEN_CPU" (rect 0 0 66 12)(font "Arial" ))
+		(text "CLKEN_CPU" (rect 73 27 139 39)(font "Arial" ))
+		(line (pt 160 32)(pt 144 32)(line_width 1))
+	)
+	(port
+		(pt 160 48)
+		(output)
+		(text "CLKEN_VID" (rect 0 0 61 12)(font "Arial" ))
+		(text "CLKEN_VID" (rect 78 43 139 55)(font "Arial" ))
+		(line (pt 160 48)(pt 144 48)(line_width 1))
+	)
+	(drawing
+		(rectangle (rect 16 16 144 80)(line_width 1))
+	)
 )
 (connector
 	(pt -24 -104)
@@ -2509,11 +2505,6 @@ applicable agreement for further details.
 	(pt -88 168)
 )
 (connector
-	(text "CLKEN_I2C" (rect 162 184 222 196)(font "Arial" ))
-	(pt 152 200)
-	(pt 232 200)
-)
-(connector
 	(pt 472 152)
 	(pt 472 272)
 	(bus)
@@ -2667,19 +2658,9 @@ applicable agreement for further details.
 	(pt 1992 320)
 )
 (connector
-	(text "CLKEN_I2C" (rect 1634 432 1694 444)(font "Arial" ))
-	(pt 1704 448)
-	(pt 1624 448)
-)
-(connector
 	(text "MCLK" (rect 1634 416 1663 428)(font "Arial" ))
 	(pt 1624 432)
 	(pt 1704 432)
-)
-(connector
-	(text "nRESET" (rect 1634 448 1675 460)(font "Arial" ))
-	(pt 1624 464)
-	(pt 1704 464)
 )
 (connector
 	(pt 1856 432)
@@ -2756,6 +2737,11 @@ applicable agreement for further details.
 (connector
 	(pt 152 416)
 	(pt 432 416)
+)
+(connector
+	(text "nRESET" (rect 1634 432 1675 444)(font "Arial" ))
+	(pt 1624 448)
+	(pt 1704 448)
 )
 (junction (pt 472 120))
 (junction (pt 824 56))

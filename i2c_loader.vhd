@@ -46,7 +46,7 @@ generic (
 	num_retries : integer := 0;
 	-- Length of clock divider in bits.  Resulting bus frequency is
 	-- CLK/2^(log2_divider + 2)
-	log2_divider : integer := 5
+	log2_divider : integer := 6
 );
 
 port (

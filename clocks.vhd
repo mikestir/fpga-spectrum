@@ -47,8 +47,6 @@ port (
 	CLKEN_CPU		:	out std_logic;
 	-- 14 MHz clock enable (out of phase with CPU)
 	CLKEN_VID		:	out std_logic;
-	-- 427.5 kHz clock enable for I2C
-	CLKEN_I2C		:	out	std_logic;
 	
 	-- Set to slow the CPU
 	SLOW			:	in	std_logic
@@ -72,10 +70,6 @@ begin
 		
 	-- 00X
 	CLKEN_VID <= counter(0);
-	
-	-- 111111 (/64)
-	CLKEN_I2C <= counter(0) and counter(1) and counter(2) and counter(3) and counter(4) and
-		counter(5);
 
 	process(nRESET,CLK)
 	begin

@@ -33,16 +33,9 @@ applicable agreement for further details.
 	(port
 		(pt 0 48)
 		(input)
-		(text "CLKEN" (rect 0 0 36 12)(font "Arial" ))
-		(text "CLKEN" (rect 21 43 57 55)(font "Arial" ))
-		(line (pt 0 48)(pt 16 48)(line_width 1))
-	)
-	(port
-		(pt 0 64)
-		(input)
 		(text "nRESET" (rect 0 0 41 12)(font "Arial" ))
-		(text "nRESET" (rect 21 59 62 71)(font "Arial" ))
-		(line (pt 0 64)(pt 16 64)(line_width 1))
+		(text "nRESET" (rect 21 43 62 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48)(line_width 1))
 	)
 	(port
 		(pt 152 64)
@@ -75,6 +68,16 @@ applicable agreement for further details.
 	(parameter
 		"device_address"
 		"26"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"num_retries"
+		"0"
+		""
+		(type "PARAMETER_SIGNED_DEC")	)
+	(parameter
+		"log2_divider"
+		"5"
 		""
 		(type "PARAMETER_SIGNED_DEC")	)
 	(drawing
