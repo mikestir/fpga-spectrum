@@ -4,7 +4,7 @@ JedecChain;
 	DefaultMfr(6E);
 
 	P ActionCode(Cfg)
-		Device PartName(EP2C20F484) Path("U:/fpga/spectrum_new/") File("spectrum.sof") MfrSpec(OpMask(1));
+		Device PartName(EP2C20F484) Path("U:/git_repos/fpga/spectrum/") File("spectrum.sof") MfrSpec(OpMask(1));
 
 ChainEnd;
 
