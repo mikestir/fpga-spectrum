@@ -73,7 +73,7 @@ applicable agreement for further details.
 )
 (pin
 	(input)
-	(rect -248 128 -80 144)
+	(rect -192 192 -24 208)
 	(text "INPUT" (rect 133 0 161 10)(font "Arial" (font_size 6)))
 	(text "SW[7]" (rect 5 0 35 12)(font "Arial" ))
 	(pt 168 8)
@@ -107,7 +107,7 @@ applicable agreement for further details.
 )
 (pin
 	(input)
-	(rect 1800 344 1968 360)
+	(rect -192 424 -24 440)
 	(text "INPUT" (rect 133 0 161 10)(font "Arial" (font_size 6)))
 	(text "PS2_CLK" (rect 5 0 52 12)(font "Arial" ))
 	(pt 168 8)
@@ -124,7 +124,7 @@ applicable agreement for further details.
 )
 (pin
 	(input)
-	(rect 1800 360 1968 376)
+	(rect -192 440 -24 456)
 	(text "INPUT" (rect 133 0 161 10)(font "Arial" (font_size 6)))
 	(text "PS2_DAT" (rect 5 0 52 12)(font "Arial" ))
 	(pt 168 8)
@@ -141,7 +141,7 @@ applicable agreement for further details.
 )
 (pin
 	(input)
-	(rect 792 648 960 664)
+	(rect 1352 296 1520 312)
 	(text "INPUT" (rect 133 0 161 10)(font "Arial" (font_size 6)))
 	(text "AUD_ADCDAT" (rect 5 0 79 12)(font "Arial" ))
 	(pt 168 8)
@@ -158,7 +158,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1072 232 1248 248)
+	(rect 1096 232 1272 248)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "HEX3[6..0]" (rect 90 0 143 12)(font "Arial" ))
 	(pt 0 8)
@@ -175,7 +175,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1072 248 1248 264)
+	(rect 1096 248 1272 264)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "HEX2[6..0]" (rect 90 0 143 12)(font "Arial" ))
 	(pt 0 8)
@@ -192,7 +192,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1072 264 1248 280)
+	(rect 1096 264 1272 280)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "HEX1[6..0]" (rect 90 0 143 12)(font "Arial" ))
 	(pt 0 8)
@@ -209,7 +209,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1072 280 1248 296)
+	(rect 1096 280 1272 296)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "HEX0[6..0]" (rect 90 0 143 12)(font "Arial" ))
 	(pt 0 8)
@@ -311,7 +311,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1072 296 1248 312)
+	(rect 1096 296 1272 312)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "LEDR[9..2]" (rect 90 0 145 12)(font "Arial" ))
 	(pt 0 8)
@@ -362,7 +362,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1880 560 2056 576)
+	(rect 1992 472 2168 488)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "LEDR[1]" (rect 90 0 132 12)(font "Arial" ))
 	(pt 0 8)
@@ -464,7 +464,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 2152 288 2328 304)
+	(rect 176 368 352 384)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "LEDG[7..0]" (rect 90 0 145 12)(font "Arial" ))
 	(pt 0 8)
@@ -481,7 +481,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1296 616 1472 632)
+	(rect 1992 248 2168 264)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "AUD_XCK" (rect 90 0 140 12)(font "Arial" ))
 	(pt 0 8)
@@ -498,7 +498,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1488 616 1665 632)
+	(rect 1992 264 2169 280)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "AUD_ADCLRCK" (rect 90 0 172 12)(font "Arial" ))
 	(pt 0 8)
@@ -515,7 +515,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1488 632 1665 648)
+	(rect 1992 280 2169 296)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "AUD_DACLRCK" (rect 90 0 172 12)(font "Arial" ))
 	(pt 0 8)
@@ -532,7 +532,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1296 648 1472 664)
+	(rect 1992 296 2168 312)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "AUD_BCLK" (rect 90 0 147 12)(font "Arial" ))
 	(pt 0 8)
@@ -549,7 +549,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 1296 664 1472 680)
+	(rect 1992 312 2168 328)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "AUD_DACDAT" (rect 90 0 164 12)(font "Arial" ))
 	(pt 0 8)
@@ -584,7 +584,7 @@ applicable agreement for further details.
 )
 (pin
 	(bidir)
-	(rect 1880 512 2056 528)
+	(rect 1992 424 2168 440)
 	(text "BIDIR" (rect 1 0 25 10)(font "Arial" (font_size 6)))
 	(text "I2C_SCLK" (rect 90 0 141 12)(font "Arial" ))
 	(pt 0 8)
@@ -602,7 +602,7 @@ applicable agreement for further details.
 )
 (pin
 	(bidir)
-	(rect 1880 528 2056 544)
+	(rect 1992 440 2168 456)
 	(text "BIDIR" (rect 1 0 25 10)(font "Arial" (font_size 6)))
 	(text "I2C_SDAT" (rect 90 0 141 12)(font "Arial" ))
 	(pt 0 8)
@@ -784,7 +784,7 @@ applicable agreement for further details.
 	)
 )
 (symbol
-	(rect 912 208 1072 368)
+	(rect 936 208 1096 368)
 	(text "addr_mon" (rect 5 0 53 12)(font "Arial" ))
 	(text "inst18" (rect 8 144 37 156)(font "Arial" ))
 	(port
@@ -1548,7 +1548,7 @@ applicable agreement for further details.
 	)
 )
 (symbol
-	(rect 1968 288 2128 416)
+	(rect -8 368 152 496)
 	(text "ps2_intf" (rect 5 0 45 12)(font "Arial" ))
 	(text "inst23" (rect 8 112 37 124)(font "Arial" ))
 	(port
@@ -1608,10 +1608,10 @@ applicable agreement for further details.
 	(drawing
 		(rectangle (rect 16 16 144 112)(line_width 1))
 	)
-	(annotation_block (parameter)(rect 2128 256 2296 288))
+	(annotation_block (parameter)(rect 152 336 320 368))
 )
 (symbol
-	(rect 2408 240 2600 368)
+	(rect 432 320 624 448)
 	(text "keyboard" (rect 5 0 51 12)(font "Arial" ))
 	(text "inst27" (rect 8 112 37 124)(font "Arial" ))
 	(port
@@ -1735,7 +1735,7 @@ applicable agreement for further details.
 	)
 )
 (symbol
-	(rect -64 72 96 168)
+	(rect -8 136 152 232)
 	(text "clocks" (rect 5 0 36 12)(font "Arial" ))
 	(text "inst9" (rect 8 80 31 92)(font "Arial" ))
 	(port
@@ -1785,7 +1785,7 @@ applicable agreement for further details.
 	)
 )
 (symbol
-	(rect 960 560 1296 720)
+	(rect 1520 208 1856 368)
 	(text "i2s_intf" (rect 5 0 41 12)(font "Arial" ))
 	(text "inst31" (rect 8 144 37 156)(font "Arial" ))
 	(port
@@ -1888,10 +1888,10 @@ applicable agreement for further details.
 	(drawing
 		(rectangle (rect 16 16 320 144)(line_width 1))
 	)
-	(annotation_block (parameter)(rect 1296 488 1488 560))
+	(annotation_block (parameter)(rect 1560 120 1752 192))
 )
 (symbol
-	(rect 1728 488 1880 616)
+	(rect 1704 400 1856 528)
 	(text "i2c_loader" (rect 5 0 54 12)(font "Arial" ))
 	(text "inst28" (rect 8 112 37 124)(font "Arial" ))
 	(port
@@ -1951,7 +1951,7 @@ applicable agreement for further details.
 	(drawing
 		(rectangle (rect 16 16 136 112)(line_width 1))
 	)
-	(annotation_block (parameter)(rect 1880 456 2072 488))
+	(annotation_block (parameter)(rect 1856 368 2048 400))
 )
 (connector
 	(pt -24 -104)
@@ -1991,29 +1991,6 @@ applicable agreement for further details.
 (connector
 	(pt 472 88)
 	(pt 472 120)
-)
-(connector
-	(text "MCLK" (rect 866 224 895 236)(font "Arial" ))
-	(pt 912 240)
-	(pt 856 240)
-)
-(connector
-	(text "A[15..0]" (rect 866 240 904 252)(font "Arial" ))
-	(pt 912 256)
-	(pt 856 256)
-	(bus)
-)
-(connector
-	(pt 792 320)
-	(pt 912 320)
-)
-(connector
-	(pt 912 288)
-	(pt 824 288)
-)
-(connector
-	(pt 912 304)
-	(pt 808 304)
 )
 (connector
 	(pt 664 104)
@@ -2059,16 +2036,6 @@ applicable agreement for further details.
 	(bus)
 )
 (connector
-	(pt 472 272)
-	(pt 912 272)
-	(bus)
-)
-(connector
-	(pt 472 152)
-	(pt 472 272)
-	(bus)
-)
-(connector
 	(text "MCLK" (rect 858 -112 887 -100)(font "Arial" ))
 	(pt 936 -96)
 	(pt 848 -96)
@@ -2082,10 +2049,6 @@ applicable agreement for further details.
 	(text "nRESET" (rect 858 -96 899 -84)(font "Arial" ))
 	(pt 936 -80)
 	(pt 848 -80)
-)
-(connector
-	(pt 912 -136)
-	(pt 912 -48)
 )
 (connector
 	(pt 936 -48)
@@ -2102,16 +2065,8 @@ applicable agreement for further details.
 	(bus)
 )
 (connector
-	(pt 1192 -136)
-	(pt 912 -136)
-)
-(connector
 	(pt 1168 -352)
 	(pt 1192 -352)
-)
-(connector
-	(pt 1192 -352)
-	(pt 1192 -136)
 )
 (connector
 	(text "MCLK" (rect 858 -384 887 -372)(font "Arial" ))
@@ -2137,30 +2092,6 @@ applicable agreement for further details.
 	(pt 880 72)
 )
 (connector
-	(pt 792 -272)
-	(pt 792 104)
-)
-(connector
-	(pt 792 104)
-	(pt 792 320)
-)
-(connector
-	(pt 808 -288)
-	(pt 808 88)
-)
-(connector
-	(pt 808 88)
-	(pt 808 304)
-)
-(connector
-	(pt 824 -320)
-	(pt 824 56)
-)
-(connector
-	(pt 824 56)
-	(pt 824 288)
-)
-(connector
 	(pt 936 -272)
 	(pt 792 -272)
 )
@@ -2179,17 +2110,6 @@ applicable agreement for further details.
 (connector
 	(pt 936 -336)
 	(pt 696 -336)
-	(bus)
-)
-(connector
-	(text "D_TO_CPU[7..0]" (rect 386 136 469 148)(font "Arial" ))
-	(pt 376 152)
-	(pt 472 152)
-	(bus)
-)
-(connector
-	(pt 472 152)
-	(pt 512 152)
 	(bus)
 )
 (connector
@@ -2288,25 +2208,6 @@ applicable agreement for further details.
 	(pt 1168 -80)
 	(pt 1296 -80)
 	(bus)
-)
-(connector
-	(pt -80 136)
-	(pt -64 136)
-)
-(connector
-	(text "CLKEN_VID" (rect 106 104 167 116)(font "Arial" ))
-	(pt 96 120)
-	(pt 176 120)
-)
-(connector
-	(text "nRESET" (rect -142 104 -101 116)(font "Arial" ))
-	(pt -64 120)
-	(pt -144 120)
-)
-(connector
-	(text "CLKEN_CPU" (rect 106 88 172 100)(font "Arial" ))
-	(pt 176 104)
-	(pt 96 104)
 )
 (connector
 	(text "CLKEN_CPU" (rect 250 56 316 68)(font "Arial" ))
@@ -2413,11 +2314,6 @@ applicable agreement for further details.
 (connector
 	(pt -8 -120)
 	(pt -24 -120)
-)
-(connector
-	(text "MCLK" (rect -142 88 -113 100)(font "Arial" ))
-	(pt -64 104)
-	(pt -144 104)
 )
 (connector
 	(text "nRAMEN" (rect 1210 -352 1254 -340)(font "Arial" ))
@@ -2542,62 +2438,6 @@ applicable agreement for further details.
 	(pt 1512 -416)
 )
 (connector
-	(text "MCLK" (rect 1922 304 1951 316)(font "Arial" ))
-	(pt 1968 320)
-	(pt 1912 320)
-)
-(connector
-	(text "nRESET" (rect 1922 320 1963 332)(font "Arial" ))
-	(pt 1968 336)
-	(pt 1912 336)
-)
-(connector
-	(pt 2136 320)
-	(pt 2136 296)
-	(bus)
-)
-(connector
-	(pt 2136 296)
-	(pt 2152 296)
-	(bus)
-)
-(connector
-	(pt 2128 320)
-	(pt 2136 320)
-	(bus)
-)
-(connector
-	(pt 2136 320)
-	(pt 2408 320)
-	(bus)
-)
-(connector
-	(text "MCLK" (rect 2354 256 2383 268)(font "Arial" ))
-	(pt 2408 272)
-	(pt 2344 272)
-)
-(connector
-	(text "nRESET" (rect 2354 272 2395 284)(font "Arial" ))
-	(pt 2408 288)
-	(pt 2344 288)
-)
-(connector
-	(text "A[15..0]" (rect 2354 288 2392 300)(font "Arial" ))
-	(pt 2408 304)
-	(pt 2344 304)
-	(bus)
-)
-(connector
-	(pt 2128 336)
-	(pt 2408 336)
-)
-(connector
-	(text "KEYB[4..0]" (rect 2610 256 2665 268)(font "Arial" ))
-	(pt 2600 272)
-	(pt 2648 272)
-	(bus)
-)
-(connector
 	(text "KEYB[4..0]" (rect 858 -48 913 -36)(font "Arial" ))
 	(pt 848 -32)
 	(pt 936 -32)
@@ -2614,74 +2454,6 @@ applicable agreement for further details.
 	(pt 256 -120)
 )
 (connector
-	(text "CLKEN_I2C" (rect 106 120 166 132)(font "Arial" ))
-	(pt 96 136)
-	(pt 176 136)
-)
-(connector
-	(text "CLKEN_I2C" (rect 1658 520 1718 532)(font "Arial" ))
-	(pt 1728 536)
-	(pt 1648 536)
-)
-(connector
-	(text "MCLK" (rect 1658 504 1687 516)(font "Arial" ))
-	(pt 1648 520)
-	(pt 1728 520)
-)
-(connector
-	(text "AUDIOCLK" (rect 834 576 890 588)(font "Arial" ))
-	(pt 960 592)
-	(pt 824 592)
-)
-(connector
-	(text "nRESET" (rect 834 592 875 604)(font "Arial" ))
-	(pt 960 608)
-	(pt 824 608)
-)
-(connector
-	(pt 1488 624)
-	(pt 1480 624)
-)
-(connector
-	(pt 1480 624)
-	(pt 1480 640)
-)
-(connector
-	(pt 1296 640)
-	(pt 1480 640)
-)
-(connector
-	(pt 1480 640)
-	(pt 1488 640)
-)
-(connector
-	(pt 960 640)
-	(pt 920 640)
-	(bus)
-)
-(connector
-	(pt 920 640)
-	(pt 920 624)
-	(bus)
-)
-(connector
-	(pt 960 624)
-	(pt 920 624)
-	(bus)
-)
-(connector
-	(text "PCM_OUT[15..0]" (rect 834 608 917 620)(font "Arial" ))
-	(pt 920 624)
-	(pt 824 624)
-	(bus)
-)
-(connector
-	(text "PCM_IN[15..0]" (rect 1306 576 1379 588)(font "Arial" ))
-	(pt 1296 592)
-	(pt 1360 592)
-	(bus)
-)
-(connector
 	(text "PCM_OUT[13]" (rect 1178 -64 1248 -52)(font "Arial" ))
 	(pt 1168 -48)
 	(pt 1240 -48)
@@ -2690,11 +2462,6 @@ applicable agreement for further details.
 	(text "PCM_IN[15]" (rect 858 -32 918 -20)(font "Arial" ))
 	(pt 936 -16)
 	(pt 848 -16)
-)
-(connector
-	(text "nRESET" (rect 1658 536 1699 548)(font "Arial" ))
-	(pt 1648 552)
-	(pt 1728 552)
 )
 (connector
 	(text "PCM_OUT[15]" (rect 1178 -80 1248 -68)(font "Arial" ))
@@ -2717,6 +2484,279 @@ applicable agreement for further details.
 	(pt 336 -176)
 	(pt 408 -176)
 )
+(connector
+	(pt -24 200)
+	(pt -8 200)
+)
+(connector
+	(text "CLKEN_VID" (rect 162 168 223 180)(font "Arial" ))
+	(pt 152 184)
+	(pt 232 184)
+)
+(connector
+	(text "nRESET" (rect -86 168 -45 180)(font "Arial" ))
+	(pt -8 184)
+	(pt -88 184)
+)
+(connector
+	(text "CLKEN_CPU" (rect 162 152 228 164)(font "Arial" ))
+	(pt 232 168)
+	(pt 152 168)
+)
+(connector
+	(text "MCLK" (rect -86 152 -57 164)(font "Arial" ))
+	(pt -8 168)
+	(pt -88 168)
+)
+(connector
+	(text "CLKEN_I2C" (rect 162 184 222 196)(font "Arial" ))
+	(pt 152 200)
+	(pt 232 200)
+)
+(connector
+	(pt 472 152)
+	(pt 472 272)
+	(bus)
+)
+(connector
+	(text "D_TO_CPU[7..0]" (rect 386 136 469 148)(font "Arial" ))
+	(pt 376 152)
+	(pt 472 152)
+	(bus)
+)
+(connector
+	(pt 472 152)
+	(pt 512 152)
+	(bus)
+)
+(connector
+	(pt 792 -272)
+	(pt 792 104)
+)
+(connector
+	(pt 792 104)
+	(pt 792 320)
+)
+(connector
+	(pt 808 -288)
+	(pt 808 88)
+)
+(connector
+	(pt 808 88)
+	(pt 808 304)
+)
+(connector
+	(pt 824 -320)
+	(pt 824 56)
+)
+(connector
+	(pt 824 56)
+	(pt 824 288)
+)
+(connector
+	(text "MCLK" (rect 890 224 919 236)(font "Arial" ))
+	(pt 880 240)
+	(pt 936 240)
+)
+(connector
+	(text "A[15..0]" (rect 890 240 928 252)(font "Arial" ))
+	(pt 880 256)
+	(pt 936 256)
+	(bus)
+)
+(connector
+	(pt 472 272)
+	(pt 936 272)
+	(bus)
+)
+(connector
+	(pt 824 288)
+	(pt 936 288)
+)
+(connector
+	(pt 808 304)
+	(pt 936 304)
+)
+(connector
+	(pt 792 320)
+	(pt 936 320)
+)
+(connector
+	(pt 912 -48)
+	(pt 912 -152)
+)
+(connector
+	(pt 1192 -152)
+	(pt 912 -152)
+)
+(connector
+	(pt 1192 -352)
+	(pt 1192 -152)
+)
+(connector
+	(pt 1992 272)
+	(pt 1984 272)
+)
+(connector
+	(pt 1984 272)
+	(pt 1984 288)
+)
+(connector
+	(pt 1992 256)
+	(pt 1960 256)
+)
+(connector
+	(pt 1480 288)
+	(pt 1480 272)
+	(bus)
+)
+(connector
+	(pt 1480 288)
+	(pt 1520 288)
+	(bus)
+)
+(connector
+	(pt 1960 256)
+	(pt 1960 272)
+)
+(connector
+	(text "AUDIOCLK" (rect 1394 224 1450 236)(font "Arial" ))
+	(pt 1384 240)
+	(pt 1520 240)
+)
+(connector
+	(text "nRESET" (rect 1394 240 1435 252)(font "Arial" ))
+	(pt 1384 256)
+	(pt 1520 256)
+)
+(connector
+	(pt 1984 288)
+	(pt 1992 288)
+)
+(connector
+	(text "PCM_OUT[15..0]" (rect 1394 256 1477 268)(font "Arial" ))
+	(pt 1384 272)
+	(pt 1480 272)
+	(bus)
+)
+(connector
+	(pt 1480 272)
+	(pt 1520 272)
+	(bus)
+)
+(connector
+	(text "PCM_IN[15..0]" (rect 1866 224 1939 236)(font "Arial" ))
+	(pt 1856 240)
+	(pt 1920 240)
+	(bus)
+)
+(connector
+	(pt 1856 272)
+	(pt 1960 272)
+)
+(connector
+	(pt 1856 288)
+	(pt 1984 288)
+)
+(connector
+	(pt 1856 304)
+	(pt 1992 304)
+)
+(connector
+	(pt 1856 320)
+	(pt 1992 320)
+)
+(connector
+	(text "CLKEN_I2C" (rect 1634 432 1694 444)(font "Arial" ))
+	(pt 1704 448)
+	(pt 1624 448)
+)
+(connector
+	(text "MCLK" (rect 1634 416 1663 428)(font "Arial" ))
+	(pt 1624 432)
+	(pt 1704 432)
+)
+(connector
+	(text "nRESET" (rect 1634 448 1675 460)(font "Arial" ))
+	(pt 1624 464)
+	(pt 1704 464)
+)
+(connector
+	(pt 1856 432)
+	(pt 1992 432)
+)
+(connector
+	(pt 1856 448)
+	(pt 1992 448)
+)
+(connector
+	(pt 1856 480)
+	(pt 1992 480)
+)
+(connector
+	(pt -24 432)
+	(pt -8 432)
+)
+(connector
+	(pt -24 448)
+	(pt -8 448)
+)
+(connector
+	(pt 160 376)
+	(pt 176 376)
+	(bus)
+)
+(connector
+	(text "KEYB[4..0]" (rect 634 336 689 348)(font "Arial" ))
+	(pt 624 352)
+	(pt 672 352)
+	(bus)
+)
+(connector
+	(pt 160 376)
+	(pt 160 400)
+	(bus)
+)
+(connector
+	(pt 152 400)
+	(pt 160 400)
+	(bus)
+)
+(connector
+	(text "MCLK" (rect -54 384 -25 396)(font "Arial" ))
+	(pt -64 400)
+	(pt -8 400)
+)
+(connector
+	(text "nRESET" (rect -54 400 -13 412)(font "Arial" ))
+	(pt -64 416)
+	(pt -8 416)
+)
+(connector
+	(text "MCLK" (rect 378 336 407 348)(font "Arial" ))
+	(pt 368 352)
+	(pt 432 352)
+)
+(connector
+	(text "nRESET" (rect 378 352 419 364)(font "Arial" ))
+	(pt 368 368)
+	(pt 432 368)
+)
+(connector
+	(text "A[15..0]" (rect 378 368 416 380)(font "Arial" ))
+	(pt 368 384)
+	(pt 432 384)
+	(bus)
+)
+(connector
+	(pt 160 400)
+	(pt 432 400)
+	(bus)
+)
+(connector
+	(pt 152 416)
+	(pt 432 416)
+)
 (junction (pt 472 120))
 (junction (pt 824 56))
 (junction (pt 808 88))
@@ -2730,9 +2770,9 @@ applicable agreement for further details.
 (junction (pt 1808 -264))
 (junction (pt 1360 -456))
 (junction (pt 1616 -296))
-(junction (pt 2136 320))
-(junction (pt 1480 640))
-(junction (pt 920 624))
+(junction (pt 1984 288))
+(junction (pt 1480 272))
+(junction (pt 160 400))
 (text "Read can be asserted by CPU or video" (rect 1712 -216 1932 -202)(font "Arial" (font_size 8)))
 (text "Inhibit SRAM write outside of CPU ticks" (rect 1528 -336 1748 -322)(font "Arial" (font_size 8)))
 (text "Upper bits of video address are constant" (rect 1296 -520 1529 -506)(font "Arial" (font_size 8)))
