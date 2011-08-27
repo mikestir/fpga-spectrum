@@ -575,39 +575,41 @@ begin
 		slow
 		);
 		
-	-- Hardware debugger block (single-step, breakpoints)
-	debug:	debugger port map (
-		clock,
-		reset_n,
-		cpu_clken,
-		debug_cpu_clken,
-		debug_irq_in_n,
-		cpu_irq_n,
-		cpu_a(15 downto 0), cpu_wr_n, debug_fetch,
-		debug_aux,
-		SW(8), -- RUN
-		KEY(3), -- STEP
-		KEY(2), -- MODE
-		KEY(1), -- DIGIT
-		KEY(0), -- SET
-		HEX3, HEX2, HEX1, HEX0,
-		LEDR(3), -- BREAKPOINT
-		LEDR(2) -- WATCHPOINT
-		);
-	debug_fetch <= not (cpu_m1_n or cpu_mreq_n);
-	-- VSYNC interrupt routed through debugger
-	debug_irq_in_n <= vid_irq_n;	
+--	-- Hardware debugger block (single-step, breakpoints)
+--	debug:	debugger port map (
+--		clock,
+--		reset_n,
+--		cpu_clken,
+--		debug_cpu_clken,
+--		debug_irq_in_n,
+--		cpu_irq_n,
+--		cpu_a(15 downto 0), cpu_wr_n, debug_fetch,
+--		debug_aux,
+--		SW(8), -- RUN
+--		KEY(3), -- STEP
+--		KEY(2), -- MODE
+--		KEY(1), -- DIGIT
+--		KEY(0), -- SET
+--		HEX3, HEX2, HEX1, HEX0,
+--		LEDR(3), -- BREAKPOINT
+--		LEDR(2) -- WATCHPOINT
+--		);
+--	debug_fetch <= not (cpu_m1_n or cpu_mreq_n);
+--	-- VSYNC interrupt routed through debugger
+--	debug_irq_in_n <= vid_irq_n;	
 		
 	-- CPU
 	cpu: T80se port map (
-		reset_n, clock, debug_cpu_clken,
+		reset_n, clock, cpu_clken, --debug_cpu_clken,
 		cpu_wait_n, cpu_irq_n, cpu_nmi_n,
 		cpu_busreq_n, cpu_m1_n,
 		cpu_mreq_n, cpu_ioreq_n,
 		cpu_rd_n, cpu_wr_n,
 		cpu_rfsh_n, cpu_halt_n, cpu_busack_n,
 		cpu_a, cpu_di, cpu_do
-		);	
+		);
+	-- VSYNC interrupt routed to CPU
+	cpu_irq_n <= vid_irq_n;
 	-- Unused CPU input signals
 	cpu_wait_n <= '1';
 	cpu_nmi_n <= '1';
@@ -795,14 +797,8 @@ begin
 	-- Connect 1-bit audio to PCM interface
 	--pcm_outl <= ula_ear_out & "0" & ula_mic_out & "0000000000000";
 	--pcm_outr <= ula_ear_out & "0" & ula_mic_out & "0000000000000";
-	pcm_outl <= 
-		(psg_aout(7) xor ula_ear_out) &
-		(psg_aout(6) xor ula_mic_out) & 
-		psg_aout(5 downto 0) & "00000000";
-	pcm_outr <= 
-		(psg_aout(7) xor ula_ear_out) &
-		(psg_aout(6) xor ula_mic_out) & 
-		psg_aout(5 downto 0) & "00000000";
+	pcm_outl <= (ula_ear_out xor ula_mic_out) & psg_aout & "0000000";
+	pcm_outr <= (ula_ear_out xor ula_mic_out) & psg_aout & "0000000";
 	
 	-- Hysteresis for EAR input (should help reliability)
 	process(clock)
