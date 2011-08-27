@@ -509,6 +509,9 @@ set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name USE_CONFIGURATION_DEVICE ON
 set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name VHDL_FILE YM2149/YM2149_volmix.vhd
+set_global_assignment -name VHDL_FILE YM2149/vol_table_array.vhd
+set_global_assignment -name VHDL_FILE YM2149/YM2149_tb.vhd
 set_global_assignment -name VHDL_FILE seg7.vhd
 set_global_assignment -name VHDL_FILE debugger.vhd
 set_global_assignment -name VHDL_FILE ula_port.vhd

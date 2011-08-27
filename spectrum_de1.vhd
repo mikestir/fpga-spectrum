@@ -166,6 +166,8 @@ port (
 	-- Master reset
 	nRESET			:	in std_logic;
 	
+	-- 1.75 MHz clock enable for sound
+	CLKEN_PSG		:	out	std_logic;
 	-- 3.5 MHz clock enable (1 in 8)
 	CLKEN_CPU		:	out std_logic;
 	-- 14 MHz clock enable (out of phase with CPU)
@@ -274,8 +276,7 @@ port (
 	-- CPU interface with separate read/write buses
 	D_IN	:	in	std_logic_vector(7 downto 0);
 	D_OUT	:	out	std_logic_vector(7 downto 0);
-	ENABLE1	:	in	std_logic; -- 0xFE register
-	ENABLE2 :	in	std_logic; -- 0x7FFD register (128K)
+	ENABLE	:	in	std_logic;
 	nWR		:	in	std_logic;
 	
 	BORDER_OUT	:	out	std_logic_vector(2 downto 0);
@@ -283,16 +284,7 @@ port (
 	MIC_OUT		:	out std_logic;
 	
 	KEYB_IN		:	in 	std_logic_vector(4 downto 0);
-	EAR_IN		:	in	std_logic;
-	
-	-- 128K paging register
-	-- 0 selects 128K ROM, 1 selects 48K ROM
-	ROM_SEL		:	out	std_logic;
-	-- 1 enables video output from bank 7 instead of bank 5
-	SHADOW_VID	:	out	std_logic;
-	-- Selects RAM bank to present at 0xc000
-	RAM_PAGE	:	out	std_logic_vector(2 downto 0)
-	
+	EAR_IN		:	in	std_logic	
 	);
 end component;
 
@@ -364,6 +356,36 @@ end component;
 -----------
 -- Sound
 -----------
+
+component YM2149 is
+  port (
+  -- data bus
+  I_DA                : in  std_logic_vector(7 downto 0);
+  O_DA                : out std_logic_vector(7 downto 0);
+  O_DA_OE_L           : out std_logic;
+  -- control
+  I_A9_L              : in  std_logic;
+  I_A8                : in  std_logic;
+  I_BDIR              : in  std_logic;
+  I_BC2               : in  std_logic;
+  I_BC1               : in  std_logic;
+  I_SEL_L             : in  std_logic;
+
+  O_AUDIO             : out std_logic_vector(7 downto 0);
+  -- port a
+  I_IOA               : in  std_logic_vector(7 downto 0);
+  O_IOA               : out std_logic_vector(7 downto 0);
+  O_IOA_OE_L          : out std_logic;
+  -- port b
+  I_IOB               : in  std_logic_vector(7 downto 0);
+  O_IOB               : out std_logic_vector(7 downto 0);
+  O_IOB_OE_L          : out std_logic;
+  --
+  ENA                 : in  std_logic;
+  RESET_L             : in  std_logic;
+  CLK                 : in  std_logic
+  );
+end component;
 
 component i2s_intf is
 generic(
@@ -443,19 +465,28 @@ signal audio_clock		:	std_logic;
 signal reset_n			:	std_logic;
 
 -- Clock control
+signal psg_clken		:	std_logic;
 signal cpu_clken		:	std_logic;
 signal vid_clken		:	std_logic;
 signal slow				:	std_logic;
 
 -- Address decoding
 signal ula_enable		:	std_logic; -- all even IO addresses
-signal paging_enable	:	std_logic; -- all odd IO addresses with A15 and A1 clear
 signal rom_enable		:	std_logic; -- 0x0000-0x3FFF
 signal ram_enable		:	std_logic; -- 0x4000-0xFFFF
--- RAM bank being accessed
+-- 128K extensions
+signal page_enable		:	std_logic; -- all odd IO addresses with A15 and A1 clear
+signal psg_enable		:	std_logic; -- all odd IO addresses with A15 set and A1 clear
+-- Paging register
+signal page_reg_disable	:	std_logic; -- bit 5
+signal page_rom_sel		:	std_logic; -- bit 4
+signal page_shadow_scr	:	std_logic; -- bit 3
+signal page_ram_sel		:	std_logic_vector(2 downto 0); -- bits 2:0
+
+-- RAM bank actually being accessed
 -- 0x4000 = bank 5
 -- 0x8000 = bank 2
--- 0xc000 = bank selected by paging register (ula_ram_page)
+-- 0xc000 = bank selected by paging register (page_ram_sel)
 signal ram_page			:	std_logic_vector(2 downto 0);
 
 -- Debugger connections
@@ -514,6 +545,10 @@ signal vid_irq_n	:	std_logic;
 signal keyb			:	std_logic_vector(4 downto 0);
 
 -- Sound
+signal psg_do		:	std_logic_vector(7 downto 0);
+signal psg_bdir		:	std_logic;
+signal psg_bc1		:	std_logic;
+signal psg_aout		:	std_logic_vector(7 downto 0);
 signal pcm_lrclk	:	std_logic;
 signal pcm_outl		:	std_logic_vector(15 downto 0);
 signal pcm_outr		:	std_logic_vector(15 downto 0);
@@ -521,10 +556,6 @@ signal pcm_inl		:	std_logic_vector(15 downto 0);
 signal pcm_inr		:	std_logic_vector(15 downto 0);
 
 begin
-	-------------------------
-	-- COMPONENT INSTANCES
-	-------------------------
-
 	-- 28 MHz master clock
 	pll: pll_main port map (
 		pll_reset,
@@ -538,6 +569,7 @@ begin
 	clken: clocks port map (
 		clock,
 		reset_n,
+		psg_clken,
 		cpu_clken,
 		vid_clken,
 		slow
@@ -592,12 +624,11 @@ begin
 	ula: ula_port port map (
 		clock, reset_n,
 		cpu_do, ula_do,
-		ula_enable, paging_enable, cpu_wr_n,
+		ula_enable, cpu_wr_n,
 		ula_border,
 		ula_ear_out, ula_mic_out,
 		keyb,
-		ula_ear_in,
-		ula_rom_sel, ula_shadow_vid, ula_ram_page
+		ula_ear_in
 		);
 		
 	-- ULA video
@@ -615,6 +646,24 @@ begin
 		);
 		
 	-- Sound
+	psg : YM2149 port map (
+		cpu_do, psg_do, open,
+		'0', -- /A9 pulled down internally
+		'1', -- A8 pulled up on Spectrum
+		psg_bdir,
+		'1', -- BC2 pulled up on Spectrum
+		psg_bc1,
+		'1', -- /SEL is high for AY-3-8912 compatibility
+		psg_aout,
+		(others => '0'), open, open, -- port A unused (keypad and serial on Spectrum 128K)
+		(others => '0'), open, open, -- port B unused (non-existent on AY-3-8912)
+		psg_clken,
+		reset_n,
+		clock
+		);
+	psg_bdir <= psg_enable and cpu_rd_n;
+	psg_bc1 <= psg_enable and cpu_a(14);
+	
 	i2s : i2s_intf port map (
 		audio_clock, reset_n,
 		pcm_inl, pcm_inr,
@@ -650,19 +699,21 @@ begin
 	
 	-- Address decoding
 	ula_enable <= (not cpu_ioreq_n) and not cpu_a(0); -- all even IO addresses
-	paging_enable <= (not cpu_ioreq_n) and cpu_a(0) and not (cpu_a(15) or cpu_a(1));
+	page_enable <= (not cpu_ioreq_n) and cpu_a(0) and not (cpu_a(15) or cpu_a(1));
+	psg_enable <= (not cpu_ioreq_n) and cpu_a(0) and cpu_a(15) and not cpu_a(1);
 	rom_enable <= (not cpu_mreq_n) and not (cpu_a(15) or cpu_a(14)); -- 0x0000 - 0x3fff
 	ram_enable <= (not cpu_mreq_n) and (cpu_a(15) or cpu_a(14)); -- 0x4000 - 0xffff
 	ram_page <=
 		"101" when (cpu_a(15) = '0' and cpu_a(14) = '1') else -- Bank 5 at 0x4000
 		"010" when (cpu_a(15) = '1' and cpu_a(14) = '0') else -- Bank 2 at 0x8000
-		ula_ram_page; -- Selectable bank at 0xC000
+		page_ram_sel; -- Selectable bank at 0xC000
 		
 	-- CPU data bus mux
 	cpu_di <=
 		SRAM_DQ(7 downto 0) when ram_enable = '1' else
 		FL_DQ when rom_enable = '1' else
 		ula_do when ula_enable = '1' else
+		psg_do when psg_enable = '1' else
 		(others => '1'); -- Floating bus
 	
 	-- ROMs are in external flash starting at 0x20000
@@ -675,7 +726,7 @@ begin
 	--FL_ADDR(21 downto 14) <= "00001000";
 	-- 128K
 	FL_ADDR(21 downto 15) <= "0000101";
-	FL_ADDR(14) <= ula_rom_sel;
+	FL_ADDR(14) <= page_rom_sel;
 	FL_ADDR(13 downto 0) <= cpu_a(13 downto 0);
 
 	-- SRAM bus
@@ -712,7 +763,7 @@ begin
 				-- Because we have time division instead of bus contention
 				-- we don't bother using the vid_rd_n signal from the ULA
 				SRAM_WE_N <= '1';
-				if ula_shadow_vid = '1' then
+				if page_shadow_scr = '1' then
 					-- Video from bank 7
 					SRAM_ADDR <= "01110" & vid_a;
 				else
@@ -723,9 +774,35 @@ begin
 		end if;
 	end process;
 	
+	-- 128K paging register
+	process(clock,reset_n)
+	begin
+		if reset_n = '0' then
+			page_reg_disable <= '0';
+			page_rom_sel <= '0';
+			page_shadow_scr <= '0';
+			page_ram_sel <= (others => '0');
+		elsif rising_edge(clock) then
+			if page_enable = '1' and page_reg_disable = '0' and cpu_wr_n = '0' then
+				page_reg_disable <= cpu_do(5);
+				page_rom_sel <= cpu_do(4);
+				page_shadow_scr <= cpu_do(3);
+				page_ram_sel <= cpu_do(2 downto 0);
+			end if;
+		end if;
+	end process;
+	
 	-- Connect 1-bit audio to PCM interface
-	pcm_outl <= ula_ear_out & "0" & ula_mic_out & "0000000000000";
-	pcm_outr <= ula_ear_out & "0" & ula_mic_out & "0000000000000";
+	--pcm_outl <= ula_ear_out & "0" & ula_mic_out & "0000000000000";
+	--pcm_outr <= ula_ear_out & "0" & ula_mic_out & "0000000000000";
+	pcm_outl <= 
+		(psg_aout(7) xor ula_ear_out) &
+		(psg_aout(6) xor ula_mic_out) & 
+		psg_aout(5 downto 0) & "00000000";
+	pcm_outr <= 
+		(psg_aout(7) xor ula_ear_out) &
+		(psg_aout(6) xor ula_mic_out) & 
+		psg_aout(5 downto 0) & "00000000";
 	
 	-- Hysteresis for EAR input (should help reliability)
 	process(clock)

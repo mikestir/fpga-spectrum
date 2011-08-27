@@ -43,8 +43,7 @@ port (
 	-- CPU interface with separate read/write buses
 	D_IN	:	in	std_logic_vector(7 downto 0);
 	D_OUT	:	out	std_logic_vector(7 downto 0);
-	ENABLE1	:	in	std_logic; -- 0xFE register
-	ENABLE2 :	in	std_logic; -- 0x7FFD register (128K)
+	ENABLE	:	in	std_logic;
 	nWR		:	in	std_logic;
 	
 	BORDER_OUT	:	out	std_logic_vector(2 downto 0);
@@ -52,26 +51,12 @@ port (
 	MIC_OUT		:	out std_logic;
 	
 	KEYB_IN		:	in 	std_logic_vector(4 downto 0);
-	EAR_IN		:	in	std_logic;
-	
-	-- 128K paging register
-	-- 0 selects 128K ROM, 1 selects 48K ROM
-	ROM_SEL		:	out	std_logic;
-	-- 1 enables video output from bank 7 instead of bank 5
-	SHADOW_VID	:	out	std_logic;
-	-- Selects RAM bank to present at 0xc000
-	RAM_PAGE	:	out	std_logic_vector(2 downto 0)
-	
+	EAR_IN		:	in	std_logic	
 	);
 end ula_port;
 
 architecture ula_port_arch of ula_port is
-signal inreg : std_logic_vector(7 downto 0);
-signal page_disable : std_logic;
 begin	
-	-- Load input register onto output bus
-	D_OUT <= inreg;
-	
 	process(CLK,nRESET)
 	begin
 		if nRESET = '0' then
@@ -83,40 +68,22 @@ begin
 			EAR_OUT <= '0';
 			MIC_OUT <= '0';
 			BORDER_OUT <= (others => '0');
-
-			-- Paging register
-			-- 7,6 = N/C
-			-- 5 = Paging register disable
-			-- 4 = ROM select
-			-- 3 = Shadow screen select
-			-- 2,1,0 = RAM page
-			page_disable <= '0';
-			ROM_SEL <= '0';
-			SHADOW_VID <= '0';
-			RAM_PAGE <= (others => '0');
 			
-			inreg <= (others => '0');
+			-- Input register
+			D_OUT <= (others => '0');
 		elsif rising_edge(CLK) then
 			-- Register inputs
 			-- 7 = N/C
 			-- 6 = EAR
 			-- 5 = N/C
 			-- 4-0 = Keyboard
-			inreg <= '0' & EAR_IN & '0' & KEYB_IN;
+			D_OUT <= '0' & EAR_IN & '0' & KEYB_IN;
 			
-			if nWR = '0' then
-				if ENABLE1 = '1' then
-					-- Latch input data to output register
-					EAR_OUT <= D_IN(4);
-					MIC_OUT <= D_IN(3);
-					BORDER_OUT <= D_IN(2 downto 0);
-				elsif ENABLE2 = '1' and page_disable = '0' then
-					-- Latch input data to paging register
-					page_disable <= D_IN(5);
-					ROM_SEL <= D_IN(4);
-					SHADOW_VID <= D_IN(3);
-					RAM_PAGE <= D_IN(2 downto 0);
-				end if;
+			if ENABLE = '1' and nWR = '0' then
+				-- Latch input data to output register
+				EAR_OUT <= D_IN(4);
+				MIC_OUT <= D_IN(3);
+				BORDER_OUT <= D_IN(2 downto 0);
 			end if;
 		end if;
 	end process;
