@@ -1,6 +1,6 @@
 -- ZX Spectrum for Altera DE1
 --
--- Copyright (c) 2009-2010 Mike Stirling
+-- Copyright (c) 2009-2011 Mike Stirling
 --
 -- All rights reserved
 --
@@ -33,75 +33,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
-
-entity bus_routing is
-port (
-	CLK			:	in		std_logic;
-	nRESET		:	in		std_logic;
-	
-	-- CPU interface
-	A			:	in		std_logic_vector(15 downto 0);
-	CPU_D_OUT	:	out		std_logic_vector(7 downto 0);
-	nMREQ		:	in		std_logic;
-	nIOREQ		:	in		std_logic;
-	nRD			:	in		std_logic;
-	nWR			:	in		std_logic;
-	
-	-- ROM interface
-	ROM_D_IN	:	in		std_logic_vector(7 downto 0);
-	
-	-- ULA io port enable
-	ULA_LATCH	:	out		std_logic;
-	ULA_D_IN	:	in		std_logic_vector(7 downto 0);
-	
-	-- SRAM interface
-	SRAM_D_IN	:	in		std_logic_vector(7 downto 0);
-	nRAMEN		:	out		std_logic
-	);
-end bus_routing;
-
-architecture bus_routing_arch of bus_routing is
-signal romen		:	std_logic;
-signal ramen_low	:	std_logic;
-signal ramen_high	:	std_logic;
-signal ramen		:	std_logic;
-signal ulaen		:	std_logic;
-
-begin
-	-- ROM is in the lower 16KB
-	romen <= not A(15) and not A(14) and not nMREQ;
-	-- Lower (contended) 16KB of RAM is next
-	ramen_low <= not A(15) and A(14) and not nMREQ;
-	-- Upper 32KB of RAM is next
-	ramen_high <= A(15) and not nMREQ;
-	-- All RAM
-	ramen <= (A(15) or A(14)) and not nMREQ;	
-	-- ULA is the only IO port, seen for all even accesses
-	ulaen <= not A(0) and not nIOREQ;
-	
-	nRAMEN <= not ramen;
-	
-	-- Update ULA IO port
-	ULA_LATCH <= ulaen and not nWR;
-	
-	-- Route data from memories to CPU.  No need to qualify on read
-	-- because of the split read/write bus
-	CPU_D_OUT <= 
-		ROM_D_IN when romen = '1' else
-		SRAM_D_IN when ramen = '1' else
-		ULA_D_IN when ulaen = '1' else
-		-- Idle bus
-		(others => '1');
-end bus_routing_arch;
-
---
-
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 entity ula_port is
 port (

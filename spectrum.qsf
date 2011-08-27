@@ -38,7 +38,7 @@
 
 set_global_assignment -name FAMILY "Cyclone II"
 set_global_assignment -name DEVICE EP2C20F484C7
-set_global_assignment -name TOP_LEVEL_ENTITY spectrum
+set_global_assignment -name TOP_LEVEL_ENTITY spectrum_de1
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 9.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "21:43:01  FEBRUARY 24, 2010"
 set_global_assignment -name LAST_QUARTUS_VERSION 9.1
@@ -496,8 +496,15 @@ set_location_assignment PIN_T8 -to SRAM_OE_N
 set_location_assignment PIN_W7 -to SRAM_UB_N
 set_location_assignment PIN_AA10 -to SRAM_WE_N
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH WEAK PULL-UP"
-set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
-set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
+set_global_assignment -name STRATIX_CONFIGURATION_DEVICE EPCS4
+set_global_assignment -name RESERVE_ASDO_AFTER_CONFIGURATION "AS INPUT TRI-STATED"
+set_location_assignment PIN_AB15 -to FL_CE_N
+set_location_assignment PIN_U20 -to SD_nCS
+set_location_assignment PIN_Y20 -to SD_MOSI
+set_location_assignment PIN_V20 -to SD_SCLK
+set_location_assignment PIN_W20 -to SD_MISO
+set_global_assignment -name VHDL_FILE ula_port.vhd
+set_global_assignment -name VHDL_FILE spectrum_de1.vhd
 set_global_assignment -name VHDL_FILE video.vhd
 set_global_assignment -name VHDL_FILE T80/T80.vhd
 set_global_assignment -name VHDL_FILE T80/T80_ALU.vhd
@@ -505,22 +512,17 @@ set_global_assignment -name VHDL_FILE T80/T80_MCode.vhd
 set_global_assignment -name VHDL_FILE T80/T80_Pack.vhd
 set_global_assignment -name VHDL_FILE T80/T80_Reg.vhd
 set_global_assignment -name VHDL_FILE T80/T80se.vhd
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name QIP_FILE pll_main.qip
-set_global_assignment -name BDF_FILE spectrum.bdf
 set_global_assignment -name VHDL_FILE addr_mon.vhd
-set_global_assignment -name VHDL_FILE glue.vhd
 set_global_assignment -name VHDL_FILE clocks.vhd
-set_global_assignment -name QIP_FILE screen_test.qip
-set_global_assignment -name QIP_FILE spectrum_rom.qip
-set_global_assignment -name QIP_FILE lpm_bustri0.qip
-set_global_assignment -name QIP_FILE addr_mux.qip
 set_global_assignment -name VHDL_FILE ps2_intf.vhd
 set_global_assignment -name VHDL_FILE keyboard.vhd
 set_global_assignment -name VHDL_FILE i2s_intf.vhd
 set_global_assignment -name VHDL_FILE i2c_loader.vhd
-set_global_assignment -name QIP_FILE boot_rom.qip
-set_global_assignment -name STRATIX_CONFIGURATION_DEVICE EPCS4
-set_global_assignment -name RESERVE_ASDO_AFTER_CONFIGURATION "AS INPUT TRI-STATED"
+set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
+set_global_assignment -name LL_MEMBER_STATE LOCKED -section_id "Root Region"
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name USE_CONFIGURATION_DEVICE ON
+set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

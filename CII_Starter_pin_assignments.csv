@@ -408,6 +408,7 @@ From,To,Assignment Name,Value,Enabled
 ,FL_OE_N,Location,PIN_AA15,Yes
 ,FL_RST_N,Location,PIN_W14,Yes
 ,FL_WE_N,Location,PIN_Y14,Yes
+,FL_CE_N,Location,PIN_AB15,Yes
 ,SRAM_ADDR[0],Location,PIN_AA3,Yes
 ,SRAM_ADDR[1],Location,PIN_AB3,Yes
 ,SRAM_ADDR[2],Location,PIN_AA4,Yes
@@ -447,3 +448,8 @@ From,To,Assignment Name,Value,Enabled
 ,SRAM_OE_N,Location,PIN_T8,Yes
 ,SRAM_UB_N,Location,PIN_W7,Yes
 ,SRAM_WE_N,Location,PIN_AA10,Yes
+,SD_nCS,Location,PIN_U20,Yes
+,SD_MOSI,Location,PIN_Y20,Yes
+,SD_SCLK,Location,PIN_V20,Yes
+,SD_MISO,Location,PIN_W20,Yes
+

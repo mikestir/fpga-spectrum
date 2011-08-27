@@ -1,6 +1,6 @@
 -- ZX Spectrum for Altera DE1
 --
--- Copyright (c) 2009-2010 Mike Stirling
+-- Copyright (c) 2009-2011 Mike Stirling
 --
 -- All rights reserved
 --
@@ -34,30 +34,63 @@
 -- PS/2 scancode to Spectrum matrix conversion
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 entity keyboard is
 port (
 	CLK			:	in	std_logic;
 	nRESET		:	in	std_logic;
+
+	-- PS/2 interface
+	PS2_CLK		:	in	std_logic;
+	PS2_DATA	:	in	std_logic;
 	
+	-- CPU address bus (row)
 	A			:	in	std_logic_vector(15 downto 0);
-	KEYB		:	out	std_logic_vector(4 downto 0);
-	
-	PS2_DATA	:	in	std_logic_vector(7 downto 0);
-	-- This pulses high for one tick when a new byte is
-	-- received from the keyboard
-	PS2_VALID	:	in	std_logic
+	-- Column outputs to ULA
+	KEYB		:	out	std_logic_vector(4 downto 0)
 	);
 end keyboard;
 
-architecture keyboard_arch of keyboard is
+architecture rtl of keyboard is
+
+-- PS/2 interface
+component ps2_intf is
+generic (filter_length : positive := 8);
+port(
+	CLK			:	in	std_logic;
+	nRESET		:	in	std_logic;
+	
+	-- PS/2 interface (could be bi-dir)
+	PS2_CLK		:	in	std_logic;
+	PS2_DATA	:	in	std_logic;
+	
+	-- Byte-wide data interface - only valid for one clock
+	-- so must be latched externally if required
+	DATA		:	out	std_logic_vector(7 downto 0);
+	VALID		:	out	std_logic;
+	ERROR		:	out	std_logic
+	);
+end component;
+
+-- Interface to PS/2 block
+signal keyb_data	:	std_logic_vector(7 downto 0);
+signal keyb_valid	:	std_logic;
+signal keyb_error	:	std_logic;
+
+-- Internal signals
 type key_matrix is array (7 downto 0) of std_logic_vector(4 downto 0);
 signal keys		:	key_matrix;
 signal release	:	std_logic;
 signal extended	:	std_logic;
 begin	
+
+	ps2 : ps2_intf port map (
+		CLK, nRESET,
+		PS2_CLK, PS2_DATA,
+		keyb_data, keyb_valid, keyb_error
+		);
+
 	-- Output addressed row to ULA
 	KEYB <= keys(0) when A(8) = '0' else
 		keys(1) when A(9) = '0' else
@@ -84,11 +117,11 @@ begin
 			keys(6) <= (others => '1');
 			keys(7) <= (others => '1');
 		elsif rising_edge(CLK) then
-			if PS2_VALID = '1' then
-				if PS2_DATA = X"e0" then
+			if keyb_valid = '1' then
+				if keyb_data = X"e0" then
 					-- Extended key code follows
 					extended <= '1';
-				elsif PS2_DATA = X"f0" then
+				elsif keyb_data = X"f0" then
 					-- Release code follows
 					release <= '1';
 				else
@@ -96,7 +129,7 @@ begin
 					release <= '0';
 					extended <= '0';
 				
-					case PS2_DATA is					
+					case keyb_data is					
 					when X"12" => keys(0)(0) <= release; -- Left shift (CAPS SHIFT)
 					when X"59" => keys(0)(0) <= release; -- Right shift (CAPS SHIFT)
 					when X"1a" => keys(0)(1) <= release; -- Z
@@ -175,4 +208,4 @@ begin
 		end if;
 	end process;
 
-end keyboard_arch;
+end architecture;
