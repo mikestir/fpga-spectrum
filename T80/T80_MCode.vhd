@@ -2,6 +2,7 @@
 -- T80(b) core. In an effort to merge and maintain bug fixes ....
 --
 --
+-- Ver 303 add undocumented DDCB and FDCB opcodes by TobiFlex 20.04.2010
 -- Ver 302 fixed IO cycle timing, tested thanks to Alessandro.
 -- Ver 300 started tidyup
 -- MikeJ March 2005
@@ -97,9 +98,10 @@ entity T80_MCode is
 		F                               : in std_logic_vector(7 downto 0);
 		NMICycle                : in std_logic;
 		IntCycle                : in std_logic;
+		XY_State                : in std_logic_vector(1 downto 0);
 		MCycles                 : out std_logic_vector(2 downto 0);
 		TStates                 : out std_logic_vector(2 downto 0);
-		Prefix                  : out std_logic_vector(1 downto 0); -- None,BC,ED,DD/FD
+		Prefix                  : out std_logic_vector(1 downto 0); -- None,CB,ED,DD/FD
 		Inc_PC                  : out std_logic;
 		Inc_WZ                  : out std_logic;
 		IncDec_16               : out std_logic_vector(3 downto 0); -- BC,DE,HL,SP   0 is inc
@@ -143,7 +145,8 @@ entity T80_MCode is
 		IMode                   : out std_logic_vector(1 downto 0);
 		Halt                    : out std_logic;
 		NoRead                  : out std_logic;
-		Write                   : out std_logic
+		Write                   : out std_logic;
+		XYbit_undoc             : out std_logic
 	);
 end T80_MCode;
 
@@ -250,6 +253,7 @@ begin
 		Halt <= '0';
 		NoRead <= '0';
 		Write <= '0';
+		XYbit_undoc <= '0';
 
 		case ISet is
 		when "00" =>
@@ -1366,11 +1370,32 @@ begin
 				-- SRA r
 				-- SRL r
 				-- SLL r (Undocumented) / SWAP r
-				if MCycle = "001" then
-				  ALU_Op <= "1000";
-				  Read_To_Reg <= '1';
-				  Save_ALU <= '1';
+				if XY_State="00" then
+					if MCycle = "001" then
+					  ALU_Op <= "1000";
+					  Read_To_Reg <= '1';
+					  Save_ALU <= '1';
+					end if;
+				else
+				-- R/S (IX+d),Reg, undocumented
+					MCycles <= "011";
+					XYbit_undoc <= '1';
+					case to_integer(unsigned(MCycle)) is
+					when 1 | 7=>
+						Set_Addr_To <= aXY;
+					when 2 =>
+						ALU_Op <= "1000";
+						Read_To_Reg <= '1';
+						Save_ALU <= '1';
+						Set_Addr_To <= aXY;
+						TStates <= "100";
+					when 3 =>
+						Write <= '1';
+					when others => null;
+					end case;
 				end if;
+
+
 			when "00000110"|"00010110"|"00001110"|"00011110"|"00101110"|"00111110"|"00100110"|"00110110" =>
 				-- RLC (HL)
 				-- RL (HL)
@@ -1403,9 +1428,23 @@ begin
 				|"01110000"|"01110001"|"01110010"|"01110011"|"01110100"|"01110101"|"01110111"
 				|"01111000"|"01111001"|"01111010"|"01111011"|"01111100"|"01111101"|"01111111" =>
 				-- BIT b,r
-				if MCycle = "001" then
-				  Set_BusB_To(2 downto 0) <= IR(2 downto 0);
-				  ALU_Op <= "1001";
+				if XY_State="00" then
+					if MCycle = "001" then
+					  Set_BusB_To(2 downto 0) <= IR(2 downto 0);
+					  ALU_Op <= "1001";
+					end if;
+				else
+				-- BIT b,(IX+d), undocumented
+					MCycles <= "010";
+					XYbit_undoc <= '1';
+					case to_integer(unsigned(MCycle)) is
+					when 1 | 7=>
+						Set_Addr_To <= aXY;
+					when 2 =>
+						ALU_Op <= "1001";
+						TStates <= "100";
+					when others => null;
+					end case;
 				end if;
 			when "01000110"|"01001110"|"01010110"|"01011110"|"01100110"|"01101110"|"01110110"|"01111110" =>
 				-- BIT b,(HL)
@@ -1427,10 +1466,29 @@ begin
 				|"11110000"|"11110001"|"11110010"|"11110011"|"11110100"|"11110101"|"11110111"
 				|"11111000"|"11111001"|"11111010"|"11111011"|"11111100"|"11111101"|"11111111" =>
 				-- SET b,r
-				if MCycle = "001" then
-				  ALU_Op <= "1010";
-				  Read_To_Reg <= '1';
-				  Save_ALU <= '1';
+				if XY_State="00" then
+					if MCycle = "001" then
+					  ALU_Op <= "1010";
+					  Read_To_Reg <= '1';
+					  Save_ALU <= '1';
+					end if;
+				else
+				-- SET b,(IX+d),Reg, undocumented
+					MCycles <= "011";
+					XYbit_undoc <= '1';
+					case to_integer(unsigned(MCycle)) is
+					when 1 | 7=>
+						Set_Addr_To <= aXY;
+					when 2 =>
+						ALU_Op <= "1010";
+						Read_To_Reg <= '1';
+						Save_ALU <= '1';
+						Set_Addr_To <= aXY;
+						TStates <= "100";
+					when 3 =>
+						Write <= '1';
+					when others => null;
+					end case;
 				end if;
 			when "11000110"|"11001110"|"11010110"|"11011110"|"11100110"|"11101110"|"11110110"|"11111110" =>
 				-- SET b,(HL)
@@ -1457,11 +1515,31 @@ begin
 				|"10110000"|"10110001"|"10110010"|"10110011"|"10110100"|"10110101"|"10110111"
 				|"10111000"|"10111001"|"10111010"|"10111011"|"10111100"|"10111101"|"10111111" =>
 				-- RES b,r
-				if MCycle = "001" then
-					ALU_Op <= "1011";
-					Read_To_Reg <= '1';
-					Save_ALU <= '1';
+				if XY_State="00" then
+					if MCycle = "001" then
+					  ALU_Op <= "1011";
+					  Read_To_Reg <= '1';
+					  Save_ALU <= '1';
+					end if;
+				else
+				-- RES b,(IX+d),Reg, undocumented
+					MCycles <= "011";
+					XYbit_undoc <= '1';
+					case to_integer(unsigned(MCycle)) is
+					when 1 | 7=>
+						Set_Addr_To <= aXY;
+					when 2 =>
+						ALU_Op <= "1011";
+						Read_To_Reg <= '1';
+						Save_ALU <= '1';
+						Set_Addr_To <= aXY;
+						TStates <= "100";
+					when 3 =>
+						Write <= '1';
+					when others => null;
+					end case;
 				end if;
+				
 			when "10000110"|"10001110"|"10010110"|"10011110"|"10100110"|"10101110"|"10110110"|"10111110" =>
 				-- RES b,(HL)
 				MCycles <= "011";

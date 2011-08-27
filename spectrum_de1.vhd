@@ -176,6 +176,60 @@ port (
 	);
 end component;
 
+
+--------------
+-- Debugger
+--------------
+
+component debugger is
+generic (
+	-- Set this for a reasonable half flash duration relative to the
+	-- clock frequency
+	flash_divider	:	natural := 24
+	);
+port (
+	CLOCK		:	in	std_logic;
+	nRESET		:	in	std_logic;
+	-- CPU clock enable in
+	CLKEN_IN	:	in	std_logic;
+	-- Gated clock enable back out to CPU
+	CLKEN_OUT	:	out	std_logic;
+	-- CPU IRQ in
+	nIRQ_IN		:	in	std_logic;
+	-- Gated IRQ back out to CPU (no interrupts when single stepping)
+	nIRQ_OUT	:	out	std_logic;
+	
+	-- CPU
+	A_CPU		:	in	std_logic_vector(15 downto 0);
+	R_nW		:	in	std_logic;
+	SYNC		:	in	std_logic;
+	
+	-- Aux bus input for display in hex
+	AUX_BUS		:	in	std_logic_vector(15 downto 0);
+	
+	-- Controls
+	-- RUN or HALT CPU
+	RUN			:	in	std_logic;
+	-- Push button to single-step in HALT mode
+	nSTEP		:	in	std_logic;
+	-- Push button to cycle display mode
+	nMODE		:	in	std_logic;
+	-- Push button to cycle display digit in edit mode
+	nDIGIT		:	in	std_logic;
+	-- Push button to cycle digit value in edit mode
+	nSET		:	in	std_logic;
+	
+	-- Output to display
+	DIGIT3		:	out	std_logic_vector(6 downto 0);
+	DIGIT2		:	out	std_logic_vector(6 downto 0);
+	DIGIT1		:	out	std_logic_vector(6 downto 0);
+	DIGIT0		:	out	std_logic_vector(6 downto 0);
+	
+	LED_BREAKPOINT	:	out	std_logic;
+	LED_WATCHPOINT	:	out	std_logic
+	);
+end component;
+
 ---------
 -- CPU
 ---------
@@ -208,30 +262,6 @@ component T80se is
 	);
 end component;
 
--------------------------
--- Address bus monitor
--------------------------
-
-component addr_mon is
-port (
-	CLK		:	in	std_logic;
-
-	A		:	in	std_logic_vector(15 downto 0);
-	D		:	in	std_logic_vector(7 downto 0);
-	
-	nMREQ	:	in	std_logic;
-	nRD		:	in	std_logic;
-	nWR		:	in	std_logic;
-	
-	HEX3	:	out	std_logic_vector(6 downto 0);
-	HEX2	:	out	std_logic_vector(6 downto 0);
-	HEX1	:	out	std_logic_vector(6 downto 0);
-	HEX0	:	out	std_logic_vector(6 downto 0);
-	
-	BUSOUT	:	out	std_logic_vector(7 downto 0)
-);
-end component;
-
 --------------
 -- ULA port
 --------------
@@ -244,14 +274,25 @@ port (
 	-- CPU interface with separate read/write buses
 	D_IN	:	in	std_logic_vector(7 downto 0);
 	D_OUT	:	out	std_logic_vector(7 downto 0);
-	LATCH	:	in	std_logic;
+	ENABLE1	:	in	std_logic; -- 0xFE register
+	ENABLE2 :	in	std_logic; -- 0x7FFD register (128K)
+	nWR		:	in	std_logic;
 	
 	BORDER_OUT	:	out	std_logic_vector(2 downto 0);
 	EAR_OUT		:	out	std_logic;
 	MIC_OUT		:	out std_logic;
 	
 	KEYB_IN		:	in 	std_logic_vector(4 downto 0);
-	EAR_IN		:	in	std_logic
+	EAR_IN		:	in	std_logic;
+	
+	-- 128K paging register
+	-- 0 selects 128K ROM, 1 selects 48K ROM
+	ROM_SEL		:	out	std_logic;
+	-- 1 enables video output from bank 7 instead of bank 5
+	SHADOW_VID	:	out	std_logic;
+	-- Selects RAM bank to present at 0xc000
+	RAM_PAGE	:	out	std_logic_vector(2 downto 0)
+	
 	);
 end component;
 
@@ -395,21 +436,33 @@ end component;
 -------------
 
 -- Master clock - 28 MHz
-signal pll_reset	:	std_logic;
-signal pll_locked	:	std_logic;
-signal clock		:	std_logic;
-signal audio_clock	:	std_logic;
-signal reset_n		:	std_logic;
+signal pll_reset		:	std_logic;
+signal pll_locked		:	std_logic;
+signal clock			:	std_logic;
+signal audio_clock		:	std_logic;
+signal reset_n			:	std_logic;
 
 -- Clock control
-signal cpu_clken	:	std_logic;
-signal vid_clken	:	std_logic;
-signal slow			:	std_logic;
+signal cpu_clken		:	std_logic;
+signal vid_clken		:	std_logic;
+signal slow				:	std_logic;
 
 -- Address decoding
-signal ula_enable	:	std_logic;
-signal rom_enable	:	std_logic;
-signal ram_enable	:	std_logic;
+signal ula_enable		:	std_logic; -- all even IO addresses
+signal paging_enable	:	std_logic; -- all odd IO addresses with A15 and A1 clear
+signal rom_enable		:	std_logic; -- 0x0000-0x3FFF
+signal ram_enable		:	std_logic; -- 0x4000-0xFFFF
+-- RAM bank being accessed
+-- 0x4000 = bank 5
+-- 0x8000 = bank 2
+-- 0xc000 = bank selected by paging register (ula_ram_page)
+signal ram_page			:	std_logic_vector(2 downto 0);
+
+-- Debugger connections
+signal debug_cpu_clken	:	std_logic;
+signal debug_irq_in_n	:	std_logic;
+signal debug_fetch		:	std_logic;
+signal debug_aux		:	std_logic_vector(15 downto 0);
 
 -- CPU signals
 signal cpu_wait_n	:	std_logic;
@@ -430,11 +483,13 @@ signal cpu_do		:	std_logic_vector(7 downto 0);
 
 -- ULA port signals
 signal ula_do		:	std_logic_vector(7 downto 0);
-signal ula_latch	:	std_logic;
 signal ula_border	:	std_logic_vector(2 downto 0);
 signal ula_ear_out	:	std_logic;
 signal ula_mic_out	:	std_logic;
 signal ula_ear_in	:	std_logic;
+signal ula_rom_sel	:	std_logic;
+signal ula_shadow_vid	:	std_logic;
+signal ula_ram_page	:	std_logic_vector(2 downto 0);
 
 -- ULA video signals
 signal vid_vga		:	std_logic;
@@ -459,6 +514,7 @@ signal vid_irq_n	:	std_logic;
 signal keyb			:	std_logic_vector(4 downto 0);
 
 -- Sound
+signal pcm_lrclk	:	std_logic;
 signal pcm_outl		:	std_logic_vector(15 downto 0);
 signal pcm_outr		:	std_logic_vector(15 downto 0);
 signal pcm_inl		:	std_logic_vector(15 downto 0);
@@ -487,24 +543,43 @@ begin
 		slow
 		);
 		
+	-- Hardware debugger block (single-step, breakpoints)
+	debug:	debugger port map (
+		clock,
+		reset_n,
+		cpu_clken,
+		debug_cpu_clken,
+		debug_irq_in_n,
+		cpu_irq_n,
+		cpu_a(15 downto 0), cpu_wr_n, debug_fetch,
+		debug_aux,
+		SW(8), -- RUN
+		KEY(3), -- STEP
+		KEY(2), -- MODE
+		KEY(1), -- DIGIT
+		KEY(0), -- SET
+		HEX3, HEX2, HEX1, HEX0,
+		LEDR(3), -- BREAKPOINT
+		LEDR(2) -- WATCHPOINT
+		);
+	debug_fetch <= not (cpu_m1_n or cpu_mreq_n);
+	-- VSYNC interrupt routed through debugger
+	debug_irq_in_n <= vid_irq_n;	
+		
 	-- CPU
 	cpu: T80se port map (
-		reset_n, clock, cpu_clken,
+		reset_n, clock, debug_cpu_clken,
 		cpu_wait_n, cpu_irq_n, cpu_nmi_n,
 		cpu_busreq_n, cpu_m1_n,
 		cpu_mreq_n, cpu_ioreq_n,
 		cpu_rd_n, cpu_wr_n,
 		cpu_rfsh_n, cpu_halt_n, cpu_busack_n,
 		cpu_a, cpu_di, cpu_do
-		);
-		
-	-- Address bus monitor
-	mon: addr_mon port map (
-		clock, cpu_a, cpu_do,
-		cpu_mreq_n, cpu_rd_n, cpu_wr_n,
-		HEX3, HEX2, HEX1, HEX0,
-		LEDR(9 downto 2)
-		);
+		);	
+	-- Unused CPU input signals
+	cpu_wait_n <= '1';
+	cpu_nmi_n <= '1';
+	cpu_busreq_n <= '1';
 		
 	-- Keyboard
 	kb:	keyboard port map (
@@ -517,11 +592,12 @@ begin
 	ula: ula_port port map (
 		clock, reset_n,
 		cpu_do, ula_do,
-		ula_latch,
+		ula_enable, paging_enable, cpu_wr_n,
 		ula_border,
 		ula_ear_out, ula_mic_out,
 		keyb,
-		ula_ear_in
+		ula_ear_in,
+		ula_rom_sel, ula_shadow_vid, ula_ram_page
 		);
 		
 	-- ULA video
@@ -543,9 +619,12 @@ begin
 		audio_clock, reset_n,
 		pcm_inl, pcm_inr,
 		pcm_outl, pcm_outr,
-		AUD_XCK, AUD_DACLRCK,
+		AUD_XCK, pcm_lrclk,
 		AUD_BCLK, AUD_DACDAT, AUD_ADCDAT
 		);
+	AUD_DACLRCK <= pcm_lrclk;
+	AUD_ADCLRCK <= pcm_lrclk;
+	
 	i2c : i2c_loader 
 		generic map (
 			log2_divider => 7
@@ -569,24 +648,22 @@ begin
 	slow <= SW(7);
 	vid_vga <= SW(6);
 	
-	-- Unused CPU input signals
-	cpu_wait_n <= '1';
-	cpu_nmi_n <= '1';
-	cpu_busreq_n <= '1';
-	
 	-- Address decoding
 	ula_enable <= (not cpu_ioreq_n) and not cpu_a(0); -- all even IO addresses
+	paging_enable <= (not cpu_ioreq_n) and cpu_a(0) and not (cpu_a(15) or cpu_a(1));
 	rom_enable <= (not cpu_mreq_n) and not (cpu_a(15) or cpu_a(14)); -- 0x0000 - 0x3fff
 	ram_enable <= (not cpu_mreq_n) and (cpu_a(15) or cpu_a(14)); -- 0x4000 - 0xffff
-	ula_latch <= ula_enable and not cpu_wr_n;
-	
-	-- CPU data bus mux and interrupts
+	ram_page <=
+		"101" when (cpu_a(15) = '0' and cpu_a(14) = '1') else -- Bank 5 at 0x4000
+		"010" when (cpu_a(15) = '1' and cpu_a(14) = '0') else -- Bank 2 at 0x8000
+		ula_ram_page; -- Selectable bank at 0xC000
+		
+	-- CPU data bus mux
 	cpu_di <=
 		SRAM_DQ(7 downto 0) when ram_enable = '1' else
 		FL_DQ when rom_enable = '1' else
 		ula_do when ula_enable = '1' else
 		(others => '1'); -- Floating bus
-	cpu_irq_n <= vid_irq_n;
 	
 	-- ROMs are in external flash starting at 0x20000
 	-- (lower addresses contain the BBC ROMs)
@@ -594,7 +671,11 @@ begin
 	FL_CE_N <= '0';
 	FL_OE_N <= '0';
 	FL_WE_N <= '1';
-	FL_ADDR(21 downto 14) <= "00001000";
+	-- 48K
+	--FL_ADDR(21 downto 14) <= "00001000";
+	-- 128K
+	FL_ADDR(21 downto 15) <= "0000101";
+	FL_ADDR(14) <= ula_rom_sel;
 	FL_ADDR(13 downto 0) <= cpu_a(13 downto 0);
 
 	-- SRAM bus
@@ -622,7 +703,7 @@ begin
 			if vid_clken = '1' then
 				-- Fetch data from previous CPU cycle
 				SRAM_WE_N <= not ram_write;
-				SRAM_ADDR <= "00" & cpu_a(15 downto 0);
+				SRAM_ADDR <= "0" & ram_page & cpu_a(13 downto 0);
 				if ram_write = '1' then
 					SRAM_DQ(7 downto 0) <= cpu_do;
 				end if;
@@ -631,15 +712,35 @@ begin
 				-- Because we have time division instead of bus contention
 				-- we don't bother using the vid_rd_n signal from the ULA
 				SRAM_WE_N <= '1';
-				SRAM_ADDR <= "00010" & vid_a;
+				if ula_shadow_vid = '1' then
+					-- Video from bank 7
+					SRAM_ADDR <= "01110" & vid_a;
+				else
+					-- Video from bank 5
+					SRAM_ADDR <= "01010" & vid_a;
+				end if;
 			end if;
 		end if;
 	end process;
 	
 	-- Connect 1-bit audio to PCM interface
-	ula_ear_in <= pcm_inl(15); -- sign bit
 	pcm_outl <= ula_ear_out & "0" & ula_mic_out & "0000000000000";
 	pcm_outr <= ula_ear_out & "0" & ula_mic_out & "0000000000000";
+	
+	-- Hysteresis for EAR input (should help reliability)
+	process(clock)
+	variable in_val : integer;
+	begin
+		in_val := to_integer(signed(pcm_inl));
+		
+		if rising_edge(clock) then
+			if in_val < -15 then
+				ula_ear_in <= '0';
+			elsif in_val > 15 then
+				ula_ear_in <= '1';
+			end if;
+		end if;
+	end process;
 	
 	-- Connect ULA to video output
 	VGA_R <= vid_r_out;
