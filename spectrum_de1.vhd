@@ -43,6 +43,33 @@ use IEEE.NUMERIC_STD.ALL;
 
 -- Generic top-level entity for Altera DE1 board
 entity spectrum_de1 is
+generic (
+	-- Model to generate
+	-- 0 = 48 K
+	-- 1 = 128 K
+	-- 2 = +2A/+3
+	MODEL		:	integer := 2;
+	
+	-- ROM offset
+	-- The 4MB Flash is used in 16KB banks as a simple mechanism for
+	-- different machines to address different parts of the ROM, saving
+	-- on re-flashing each time a new machine is run on the board.
+	-- This generic sets the upper 8 address bits.
+	-- Note that the lower bits may be ignored by the implementation,
+	-- e.g. where ROMs are bigger than 16K or where multiple banks
+	-- are required.  In this case it is important to ensure that the
+	-- ROM images are aligned correctly (such that these ignored bits are 0).
+	--
+	-- For the Spectrum the ROMs must be 16K, 32K or 64K aligned for
+	-- the 48K, 128K and +3 respectively
+	-- 48K
+	--ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00001000"
+	-- 128K
+	--ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00001010"
+	-- +3
+	ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00001100"
+	);
+	
 port (
 	-- Clocks
 	CLOCK_24	:	in	std_logic_vector(1 downto 0);
@@ -141,7 +168,7 @@ architecture rtl of spectrum_de1 is
 -- PLL
 -- 24 MHz input
 -- 28 MHz master clock output
--- 24 MHz audio clock output
+-- 24 MHz audio clock output+
 --------------------------------
 
 component pll_main IS
@@ -171,10 +198,7 @@ port (
 	-- 3.5 MHz clock enable (1 in 8)
 	CLKEN_CPU		:	out std_logic;
 	-- 14 MHz clock enable (out of phase with CPU)
-	CLKEN_VID		:	out std_logic;
-	
-	-- Set to slow the CPU
-	SLOW			:	in	std_logic
+	CLKEN_VID		:	out std_logic
 	);
 end component;
 
@@ -468,25 +492,30 @@ signal reset_n			:	std_logic;
 signal psg_clken		:	std_logic;
 signal cpu_clken		:	std_logic;
 signal vid_clken		:	std_logic;
-signal slow				:	std_logic;
 
 -- Address decoding
 signal ula_enable		:	std_logic; -- all even IO addresses
 signal rom_enable		:	std_logic; -- 0x0000-0x3FFF
 signal ram_enable		:	std_logic; -- 0x4000-0xFFFF
 -- 128K extensions
-signal page_enable		:	std_logic; -- all odd IO addresses with A15 and A1 clear
+signal page_enable		:	std_logic; -- all odd IO addresses with A15 and A1 clear (and A14 set in +3 mode)
 signal psg_enable		:	std_logic; -- all odd IO addresses with A15 set and A1 clear
--- Paging register
-signal page_reg_disable	:	std_logic; -- bit 5
-signal page_rom_sel		:	std_logic; -- bit 4
-signal page_shadow_scr	:	std_logic; -- bit 3
-signal page_ram_sel		:	std_logic_vector(2 downto 0); -- bits 2:0
+-- +3 extensions
+signal plus3_enable		:	std_logic; -- A15, A14, A13, A1 clear, A12 set.
+
+-- 128K paging register (with default values for systems that don't have it)
+signal page_reg_disable	:	std_logic := '1'; -- bit 5
+signal page_rom_sel		:	std_logic := '0'; -- bit 4
+signal page_shadow_scr	:	std_logic := '0'; -- bit 3
+signal page_ram_sel		:	std_logic_vector(2 downto 0) := "000"; -- bits 2:0
+
+-- +3 extensions (with default values for systems that don't have it)
+signal plus3_printer_strobe	:	std_logic := '0'; -- bit 4
+signal plus3_disk_motor	:	std_logic := '0'; -- bit 3
+signal plus3_page		:	std_logic_vector(1 downto 0) := "00"; -- bits 2:1
+signal plus3_special	:	std_logic := '0'; -- bit 0
 
 -- RAM bank actually being accessed
--- 0x4000 = bank 5
--- 0x8000 = bank 2
--- 0xc000 = bank selected by paging register (page_ram_sel)
 signal ram_page			:	std_logic_vector(2 downto 0);
 
 -- Debugger connections
@@ -544,11 +573,11 @@ signal vid_irq_n	:	std_logic;
 -- Keyboard
 signal keyb			:	std_logic_vector(4 downto 0);
 
--- Sound
-signal psg_do		:	std_logic_vector(7 downto 0);
+-- Sound (PSG default values for systems that don't have it)
+signal psg_do		:	std_logic_vector(7 downto 0) := "11111111";
 signal psg_bdir		:	std_logic;
 signal psg_bc1		:	std_logic;
-signal psg_aout		:	std_logic_vector(7 downto 0);
+signal psg_aout		:	std_logic_vector(7 downto 0) := "00000000";
 signal pcm_lrclk	:	std_logic;
 signal pcm_outl		:	std_logic_vector(15 downto 0);
 signal pcm_outr		:	std_logic_vector(15 downto 0);
@@ -571,8 +600,7 @@ begin
 		reset_n,
 		psg_clken,
 		cpu_clken,
-		vid_clken,
-		slow
+		vid_clken
 		);
 		
 --	-- Hardware debugger block (single-step, breakpoints)
@@ -648,25 +676,28 @@ begin
 		);
 		
 	-- Sound
-	psg : YM2149 port map (
-		cpu_do, psg_do, open,
-		'0', -- /A9 pulled down internally
-		'1', -- A8 pulled up on Spectrum
-		psg_bdir,
-		'1', -- BC2 pulled up on Spectrum
-		psg_bc1,
-		'1', -- /SEL is high for AY-3-8912 compatibility
-		psg_aout,
-		(others => '0'), open, open, -- port A unused (keypad and serial on Spectrum 128K)
-		(others => '0'), open, open, -- port B unused (non-existent on AY-3-8912)
-		psg_clken,
-		reset_n,
-		clock
-		);
-	psg_bdir <= psg_enable and cpu_rd_n;
-	psg_bc1 <= psg_enable and cpu_a(14);
+	sound_128k: if model /= 0 generate
+		-- PSG only on 128K and above
+		psg : YM2149 port map (
+			cpu_do, psg_do, open,
+			'0', -- /A9 pulled down internally
+			'1', -- A8 pulled up on Spectrum
+			psg_bdir,
+			'1', -- BC2 pulled up on Spectrum
+			psg_bc1,
+			'1', -- /SEL is high for AY-3-8912 compatibility
+			psg_aout,
+			(others => '0'), open, open, -- port A unused (keypad and serial on Spectrum 128K)
+			(others => '0'), open, open, -- port B unused (non-existent on AY-3-8912)
+			psg_clken,
+			reset_n,
+			clock
+			);
+		psg_bdir <= psg_enable and cpu_rd_n;
+		psg_bc1 <= psg_enable and cpu_a(14);
+	end generate;
 	
-	i2s : i2s_intf port map (
+	i2s: i2s_intf port map (
 		audio_clock, reset_n,
 		pcm_inl, pcm_inr,
 		pcm_outl, pcm_outr,
@@ -676,7 +707,7 @@ begin
 	AUD_DACLRCK <= pcm_lrclk;
 	AUD_ADCLRCK <= pcm_lrclk;
 	
-	i2c : i2c_loader 
+	i2c: i2c_loader 
 		generic map (
 			log2_divider => 7
 		)
@@ -694,21 +725,59 @@ begin
 	reset_n <= not (pll_reset or not pll_locked);
 	
 	-- Remaining switches
-	-- SW(7) = CPU slow mode
 	-- SW(6) = VGA mode
-	slow <= SW(7);
 	vid_vga <= SW(6);
 	
-	-- Address decoding
+	-- Address decoding.  Z80 has separate IO and memory address space
+	-- IO ports (nominal addresses - incompletely decoded):
+	-- 0xXXFE R/W = ULA
+	-- 0x7FFD W   = 128K paging register
+	-- 0xFFFD W   = 128K AY-3-8912 register select
+	-- 0xFFFD R   = 128K AY-3-8912 register read
+	-- 0xBFFD W   = 128K AY-3-8912 register write
+	-- 0x1FFD W   = +3 paging and control register
+	-- 0x2FFD R   = +3 FDC status register
+	-- 0x3FFD R/W = +3 FDC data register
+	-- FIXME: Revisit this - could be neater
 	ula_enable <= (not cpu_ioreq_n) and not cpu_a(0); -- all even IO addresses
-	page_enable <= (not cpu_ioreq_n) and cpu_a(0) and not (cpu_a(15) or cpu_a(1));
 	psg_enable <= (not cpu_ioreq_n) and cpu_a(0) and cpu_a(15) and not cpu_a(1);
-	rom_enable <= (not cpu_mreq_n) and not (cpu_a(15) or cpu_a(14)); -- 0x0000 - 0x3fff
-	ram_enable <= (not cpu_mreq_n) and (cpu_a(15) or cpu_a(14)); -- 0x4000 - 0xffff
-	ram_page <=
-		"101" when (cpu_a(15) = '0' and cpu_a(14) = '1') else -- Bank 5 at 0x4000
-		"010" when (cpu_a(15) = '1' and cpu_a(14) = '0') else -- Bank 2 at 0x8000
-		page_ram_sel; -- Selectable bank at 0xC000
+	addr_decode_128k: if model /= 2 generate
+		page_enable <= (not cpu_ioreq_n) and cpu_a(0) and not (cpu_a(15) or cpu_a(1));
+	end generate;
+	addr_decode_plus3: if model = 2 generate
+		-- Paging register address decoding is slightly stricter on the +3
+		page_enable <= (not cpu_ioreq_n) and cpu_a(0) and cpu_a(14) and not (cpu_a(15) or cpu_a(1));
+		plus3_enable <= (not cpu_ioreq_n) and cpu_a(0) and cpu_a(12) and not (cpu_a(15) or cpu_a(14) or cpu_a(13) or cpu_a(1));
+	end generate;
+	
+	-- ROM is enabled between 0x0000 and 0x3fff except in +3 special mode
+	rom_enable <= (not cpu_mreq_n) and not (plus3_special or cpu_a(15) or cpu_a(14));
+	-- RAM is enabled for any memory request when ROM isn't enabled
+	ram_enable <= not (cpu_mreq_n or rom_enable);
+	ram_page_128k: if model /= 2 generate
+		-- 128K has pageable RAM at 0xc000
+		ram_page <=
+			page_ram_sel when cpu_a(15 downto 14) = "11" else -- Selectable bank at 0xc000
+			cpu_a(14) & cpu_a(15 downto 14); -- A=bank: 00=XXX, 01=101, 10=010, 11=XXX
+	end generate;
+	ram_page_plus3: if model = 2 generate
+		-- +3 has various additional modes in addition to "normal" mode, which is
+		-- the same as the 128K
+		-- Extra modes assign RAM banks as follows:
+		-- plus3_page    0000    4000    8000    C000
+		-- 00            0       1       2       3
+		-- 01            4       5       6       7
+		-- 10            4       5       6       3
+		-- 11            4       7       6       3
+		-- NORMAL        ROM     5       2       PAGED
+		ram_page <=
+			page_ram_sel when plus3_special = '0' and cpu_a(15 downto 14) = "11" else
+			cpu_a(14) & cpu_a(15 downto 14) when plus3_special = '0' else
+			"0" & cpu_a(15 downto 14) when plus3_special = '1' and plus3_page = "00" else
+			"1" & cpu_a(15 downto 14) when plus3_special = '1' and plus3_page = "01" else
+			(not(cpu_a(15) and cpu_a(14))) & cpu_a(15 downto 14) when plus3_special = '1' and plus3_page = "10" else
+			(not(cpu_a(15) and cpu_a(14))) & (cpu_a(15) or cpu_a(14)) & cpu_a(14);
+	end generate;
 		
 	-- CPU data bus mux
 	cpu_di <=
@@ -724,12 +793,18 @@ begin
 	FL_CE_N <= '0';
 	FL_OE_N <= '0';
 	FL_WE_N <= '1';
-	-- 48K
-	--FL_ADDR(21 downto 14) <= "00001000";
-	-- 128K
-	FL_ADDR(21 downto 15) <= "0000101";
-	FL_ADDR(14) <= page_rom_sel;
-	FL_ADDR(13 downto 0) <= cpu_a(13 downto 0);
+	rom_48k: if model = 0 generate
+		-- 48K
+		FL_ADDR <= ROM_OFFSET & cpu_a(13 downto 0);
+	end generate;
+	rom_128k: if model = 1 generate
+		-- 128K
+		FL_ADDR <= ROM_OFFSET(7 downto 1) & page_rom_sel & cpu_a(13 downto 0);
+	end generate;
+	rom_plus3: if model = 2 generate
+		-- +3
+		FL_ADDR <= ROM_OFFSET(7 downto 2) & plus3_page(1) & page_rom_sel & cpu_a(13 downto 0);
+	end generate;
 
 	-- SRAM bus
 	SRAM_UB_N <= '1';
@@ -766,7 +841,7 @@ begin
 				-- we don't bother using the vid_rd_n signal from the ULA
 				SRAM_WE_N <= '1';
 				if page_shadow_scr = '1' then
-					-- Video from bank 7
+					-- Video from bank 7 (128K/+3)
 					SRAM_ADDR <= "01110" & vid_a;
 				else
 					-- Video from bank 5
@@ -776,29 +851,50 @@ begin
 		end if;
 	end process;
 	
-	-- 128K paging register
-	process(clock,reset_n)
-	begin
-		if reset_n = '0' then
-			page_reg_disable <= '0';
-			page_rom_sel <= '0';
-			page_shadow_scr <= '0';
-			page_ram_sel <= (others => '0');
-		elsif rising_edge(clock) then
-			if page_enable = '1' and page_reg_disable = '0' and cpu_wr_n = '0' then
-				page_reg_disable <= cpu_do(5);
-				page_rom_sel <= cpu_do(4);
-				page_shadow_scr <= cpu_do(3);
-				page_ram_sel <= cpu_do(2 downto 0);
+	page_reg_128k: if model /= 0 generate
+		-- 128K paging register
+		process(clock,reset_n)
+		begin
+			if reset_n = '0' then
+				page_reg_disable <= '0';
+				page_rom_sel <= '0';
+				page_shadow_scr <= '0';
+				page_ram_sel <= (others => '0');
+			elsif rising_edge(clock) then
+				if page_enable = '1' and page_reg_disable = '0' and cpu_wr_n = '0' then
+					page_reg_disable <= cpu_do(5);
+					page_rom_sel <= cpu_do(4);
+					page_shadow_scr <= cpu_do(3);
+					page_ram_sel <= cpu_do(2 downto 0);
+				end if;
 			end if;
-		end if;
-	end process;
+		end process;
+	end generate;
 	
-	-- Connect 1-bit audio to PCM interface
-	--pcm_outl <= ula_ear_out & "0" & ula_mic_out & "0000000000000";
-	--pcm_outr <= ula_ear_out & "0" & ula_mic_out & "0000000000000";
-	pcm_outl <= (ula_ear_out xor ula_mic_out) & psg_aout & "0000000";
-	pcm_outr <= (ula_ear_out xor ula_mic_out) & psg_aout & "0000000";
+	plus3_reg: if model = 2 generate
+		-- +3 paging and control register
+		process(clock,reset_n)
+		begin
+			if reset_n = '0' then
+				plus3_printer_strobe <= '0';
+				plus3_disk_motor <= '0';
+				plus3_page <= (others => '0');
+				plus3_special <= '0';
+			elsif rising_edge(clock) then
+				-- FIXME: Does this get disabled by the page_reg_disable bit?
+				if plus3_enable = '1' and cpu_wr_n = '0' then
+					plus3_printer_strobe <= cpu_do(4);
+					plus3_disk_motor <= cpu_do(3);
+					plus3_page <= cpu_do(2 downto 1);
+					plus3_special <= cpu_do(0);
+				end if;
+			end if;
+		end process;
+	end generate;
+	
+	-- Connect audio to PCM interface
+	pcm_outl <= ula_ear_out & psg_aout & ula_mic_out & "000000";
+	pcm_outr <= ula_ear_out & psg_aout & ula_mic_out & "000000";
 	
 	-- Hysteresis for EAR input (should help reliability)
 	process(clock)
