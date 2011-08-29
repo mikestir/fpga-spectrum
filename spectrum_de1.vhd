@@ -48,7 +48,7 @@ generic (
 	-- 0 = 48 K
 	-- 1 = 128 K
 	-- 2 = +2A/+3
-	MODEL		:	integer := 2;
+	MODEL				:	integer := 2;
 	
 	-- ROM offset
 	-- The 4MB Flash is used in 16KB banks as a simple mechanism for
@@ -63,11 +63,15 @@ generic (
 	-- For the Spectrum the ROMs must be 16K, 32K or 64K aligned for
 	-- the 48K, 128K and +3 respectively
 	-- 48K
-	--ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00000000"
+	--ROM_OFFSET			:	std_logic_vector(7 downto 0) := "00000000";
 	-- 128K
-	--ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00000010"
+	--ROM_OFFSET			:	std_logic_vector(7 downto 0) := "00000010";
 	-- +3
-	ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00000100"
+	ROM_OFFSET			:	std_logic_vector(7 downto 0) := "00000100";
+	
+	-- ROM offset for ZXMMC+ external Flash banks
+	-- Currently we decode 16 banks (256K) so this must be 256K aligned
+	ZXMMC_ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00010000"
 	);
 	
 port (
@@ -639,6 +643,7 @@ signal zxmmc_cs0	:	std_logic;
 -- ZXMMC+ external ROM/RAM interface (for ResiDOS)
 signal zxmmc_wr_en	:	std_logic;
 signal zxmmc_rd_en	:	std_logic;
+signal zxmmc_rom_nram	:	std_logic;
 signal zxmmc_bank	:	std_logic_vector(4 downto 0);
 
 begin
@@ -782,7 +787,7 @@ begin
 		cpu_wr_n, cpu_do, zxmmc_do,
 		zxmmc_cs0, open,
 		zxmmc_sclk, zxmmc_mosi, zxmmc_miso,
-		zxmmc_wr_en, zxmmc_rd_en, open, -- no Flash support for now
+		zxmmc_wr_en, zxmmc_rd_en, zxmmc_rom_nram,
 		zxmmc_bank,
 		SW(1), SW(0)
 		);
@@ -860,8 +865,8 @@ begin
 		sram_di when ram_enable = '1' else
 		-- External (ZXMMC+) RAM at 0x0000-0x3fff when enabled
 		-- This overlays the internal ROM
-		sram_di when rom_enable = '1' and zxmmc_rd_en = '1' else
-		-- Internal ROM at 0x0000-0x3fff
+		sram_di when rom_enable = '1' and zxmmc_rd_en = '1' and zxmmc_rom_nram = '0' else
+		-- Internal ROM or external (ZXMMC+) ROM at 0x0000-0x3fff
 		FL_DQ when rom_enable = '1' else
 		-- IO ports
 		ula_do when ula_enable = '1' else
@@ -878,15 +883,30 @@ begin
 	FL_WE_N <= '1';
 	rom_48k: if model = 0 generate
 		-- 48K
-		FL_ADDR <= ROM_OFFSET & cpu_a(13 downto 0);
+		FL_ADDR <= 
+			-- Overlay external ROMs when enabled
+			ZXMMC_ROM_OFFSET(7 downto 4) & zxmmc_bank(3 downto 0) & cpu_a(13 downto 0)
+			when zxmmc_rd_en = '1' else
+			-- Otherwise access the internal ROM
+			ROM_OFFSET & cpu_a(13 downto 0);
 	end generate;
 	rom_128k: if model = 1 generate
 		-- 128K
-		FL_ADDR <= ROM_OFFSET(7 downto 1) & page_rom_sel & cpu_a(13 downto 0);
+		FL_ADDR <= 
+			-- Overlay external ROMs when enabled
+			ZXMMC_ROM_OFFSET(7 downto 4) & zxmmc_bank(3 downto 0) & cpu_a(13 downto 0)
+			when zxmmc_rd_en = '1' else
+			-- Otherwise access the internal ROMs
+			ROM_OFFSET(7 downto 1) & page_rom_sel & cpu_a(13 downto 0);
 	end generate;
 	rom_plus3: if model = 2 generate
 		-- +3
-		FL_ADDR <= ROM_OFFSET(7 downto 2) & plus3_page(1) & page_rom_sel & cpu_a(13 downto 0);
+		FL_ADDR <= 
+			-- Overlay external ROMs when enabled
+			ZXMMC_ROM_OFFSET(7 downto 4) & zxmmc_bank(3 downto 0) & cpu_a(13 downto 0)
+			when zxmmc_rd_en = '1' else
+			-- Otherwise access the internal ROMs		
+			ROM_OFFSET(7 downto 2) & plus3_page(1) & page_rom_sel & cpu_a(13 downto 0);
 	end generate;
 
 	-- SRAM bus
@@ -904,7 +924,7 @@ begin
 	variable int_ram_write : std_logic; -- Internal RAM
 	variable sram_write : std_logic;
 	begin
-		ext_ram_write := (rom_enable and zxmmc_wr_en) and not cpu_wr_n;
+		ext_ram_write := (rom_enable and zxmmc_wr_en and not zxmmc_rom_nram) and not cpu_wr_n;
 		int_ram_write := ram_enable and not cpu_wr_n;
 		sram_write := int_ram_write or ext_ram_write;
 	
@@ -1026,7 +1046,4 @@ begin
 	VGA_B <= vid_b_out;
 	VGA_HS <= vid_hcsync_n;
 	VGA_VS <= vid_vsync_n;
-	
-	
-
 end architecture;
