@@ -477,6 +477,34 @@ port (
 	);
 end component;
 
+-------------------
+-- MMC interface
+-------------------
+
+component zxmmc is
+port (
+	CLOCK		:	in	std_logic;
+	nRESET		:	in	std_logic;
+	CLKEN		:	in	std_logic;
+	
+	-- Bus interface
+	ENABLE		:	in	std_logic;
+	-- 0 - W  - Card chip selects (active low)
+	-- 1 - RW - SPI tx/rx data register
+	RS			:	in	std_logic;
+	nWR			:	in	std_logic;
+	DI			:	in	std_logic_vector(7 downto 0);
+	DO			:	out	std_logic_vector(7 downto 0);
+	
+	-- SD card interface
+	SD_CS0		:	out	std_logic;
+	SD_CS1		:	out	std_logic;
+	SD_CLK		:	out	std_logic;
+	SD_MOSI		:	out	std_logic;
+	SD_MISO		:	in	std_logic
+	);
+end component;
+
 -------------
 -- Signals
 -------------
@@ -502,6 +530,8 @@ signal page_enable		:	std_logic; -- all odd IO addresses with A15 and A1 clear (
 signal psg_enable		:	std_logic; -- all odd IO addresses with A15 set and A1 clear
 -- +3 extensions
 signal plus3_enable		:	std_logic; -- A15, A14, A13, A1 clear, A12 set.
+-- ZXMMC
+signal zxmmc_enable		:	std_logic; -- A4-A0 set
 
 -- 128K paging register (with default values for systems that don't have it)
 signal page_reg_disable	:	std_logic := '1'; -- bit 5
@@ -583,6 +613,14 @@ signal pcm_outl		:	std_logic_vector(15 downto 0);
 signal pcm_outr		:	std_logic_vector(15 downto 0);
 signal pcm_inl		:	std_logic_vector(15 downto 0);
 signal pcm_inr		:	std_logic_vector(15 downto 0);
+
+-- ZXMMC interface
+signal zxmmc_do		:	std_logic_vector(7 downto 0);
+
+signal zxmmc_sclk	:	std_logic;
+signal zxmmc_mosi	:	std_logic;
+signal zxmmc_miso	:	std_logic;
+signal zxmmc_cs0	:	std_logic;
 
 begin
 	-- 28 MHz master clock
@@ -718,6 +756,23 @@ begin
 			LEDR(0) -- IS_ERROR
 		);
 		
+	-- ZXMMC interface
+	mmc: zxmmc port map (
+		clock, reset_n, cpu_clken,
+		zxmmc_enable, cpu_a(5), -- A5 selects register
+		cpu_wr_n, cpu_do, zxmmc_do,
+		zxmmc_cs0, open,
+		zxmmc_sclk, zxmmc_mosi, zxmmc_miso
+		);
+	SD_nCS <= zxmmc_cs0;
+	SD_SCLK <= zxmmc_sclk;
+	SD_MOSI <= zxmmc_mosi;
+	zxmmc_miso <= SD_MISO;
+	GPIO_0(0) <= zxmmc_cs0;
+	GPIO_0(1) <= zxmmc_sclk;
+	GPIO_0(2) <= zxmmc_mosi;
+	GPIO_0(3) <= zxmmc_miso;
+		
 	-- Asynchronous reset
 	-- PLL is reset by external reset switch
 	pll_reset <= not SW(9);
@@ -738,9 +793,11 @@ begin
 	-- 0x1FFD W   = +3 paging and control register
 	-- 0x2FFD R   = +3 FDC status register
 	-- 0x3FFD R/W = +3 FDC data register
+	-- 0xXXXF R/W = ZXMMC interface
 	-- FIXME: Revisit this - could be neater
 	ula_enable <= (not cpu_ioreq_n) and not cpu_a(0); -- all even IO addresses
 	psg_enable <= (not cpu_ioreq_n) and cpu_a(0) and cpu_a(15) and not cpu_a(1);
+	zxmmc_enable <= (not cpu_ioreq_n) and cpu_a(4) and cpu_a(3) and cpu_a(2) and cpu_a(1) and cpu_a(0);
 	addr_decode_128k: if model /= 2 generate
 		page_enable <= (not cpu_ioreq_n) and cpu_a(0) and not (cpu_a(15) or cpu_a(1));
 	end generate;
@@ -785,6 +842,7 @@ begin
 		FL_DQ when rom_enable = '1' else
 		ula_do when ula_enable = '1' else
 		psg_do when psg_enable = '1' else
+		zxmmc_do when zxmmc_enable = '1' else
 		(others => '1'); -- Floating bus
 	
 	-- ROMs are in external flash starting at 0x20000
@@ -917,6 +975,7 @@ begin
 	VGA_B <= vid_b_out;
 	VGA_HS <= vid_hcsync_n;
 	VGA_VS <= vid_vsync_n;
+	
 	
 
 end architecture;

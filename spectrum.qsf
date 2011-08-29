@@ -529,4 +529,5 @@ set_global_assignment -name VHDL_FILE ps2_intf.vhd
 set_global_assignment -name VHDL_FILE keyboard.vhd
 set_global_assignment -name VHDL_FILE i2s_intf.vhd
 set_global_assignment -name VHDL_FILE i2c_loader.vhd
+set_global_assignment -name VHDL_FILE zxmmc.vhd
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
