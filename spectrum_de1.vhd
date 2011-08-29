@@ -63,11 +63,11 @@ generic (
 	-- For the Spectrum the ROMs must be 16K, 32K or 64K aligned for
 	-- the 48K, 128K and +3 respectively
 	-- 48K
-	--ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00001000"
+	--ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00000000"
 	-- 128K
-	--ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00001010"
+	--ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00000010"
 	-- +3
-	ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00001100"
+	ROM_OFFSET	:	std_logic_vector(7 downto 0) := "00000100"
 	);
 	
 port (
@@ -566,6 +566,9 @@ signal debug_irq_in_n	:	std_logic;
 signal debug_fetch		:	std_logic;
 signal debug_aux		:	std_logic_vector(15 downto 0);
 
+-- SRAM bus high/low byte mux
+signal sram_di			:	std_logic_vector(7 downto 0);
+
 -- CPU signals
 signal cpu_wait_n	:	std_logic;
 signal cpu_irq_n	:	std_logic;
@@ -634,7 +637,6 @@ signal zxmmc_miso	:	std_logic;
 signal zxmmc_cs0	:	std_logic;
 
 -- ZXMMC+ external ROM/RAM interface (for ResiDOS)
--- FIXME: Only supporting 8 RAM banks at the moment, no Flash
 signal zxmmc_wr_en	:	std_logic;
 signal zxmmc_rd_en	:	std_logic;
 signal zxmmc_bank	:	std_logic_vector(4 downto 0);
@@ -855,10 +857,10 @@ begin
 	-- CPU data bus mux
 	cpu_di <=
 		-- System RAM
-		SRAM_DQ(7 downto 0) when ram_enable = '1' else
+		sram_di when ram_enable = '1' else
 		-- External (ZXMMC+) RAM at 0x0000-0x3fff when enabled
 		-- This overlays the internal ROM
-		SRAM_DQ(7 downto 0) when rom_enable = '1' and zxmmc_rd_en = '1' else
+		sram_di when rom_enable = '1' and zxmmc_rd_en = '1' else
 		-- Internal ROM at 0x0000-0x3fff
 		FL_DQ when rom_enable = '1' else
 		-- IO ports
@@ -888,53 +890,71 @@ begin
 	end generate;
 
 	-- SRAM bus
-	SRAM_UB_N <= '1';
-	SRAM_LB_N <= '0';
 	SRAM_CE_N <= '0';
 	SRAM_OE_N <= '0';
-	SRAM_DQ(15 downto 8) <= (others => '0');
-	vid_di <= SRAM_DQ(7 downto 0); -- Video data input
+	-- SRAM high/low byte mux
+	sram_di <= SRAM_DQ(15 downto 8) when cpu_a(0) = '1' else
+		SRAM_DQ(7 downto 0); -- CPU data input
+	vid_di <= SRAM_DQ(15 downto 8) when vid_a(0) = '1' else
+		SRAM_DQ(7 downto 0); -- Video data input
 	
 	-- Synchronous outputs to SRAM
 	process(clock,reset_n)
-	variable ram_write : std_logic;
-	begin		
-		ram_write := ram_enable and not cpu_wr_n;
+	variable ext_ram_write : std_logic; -- External RAM (ZXMMC+)
+	variable int_ram_write : std_logic; -- Internal RAM
+	variable sram_write : std_logic;
+	begin
+		ext_ram_write := (rom_enable and zxmmc_wr_en) and not cpu_wr_n;
+		int_ram_write := ram_enable and not cpu_wr_n;
+		sram_write := int_ram_write or ext_ram_write;
 	
 		if reset_n = '0' then
 			SRAM_WE_N <= '1';
-			SRAM_DQ(7 downto 0) <= (others => 'Z');
+			SRAM_UB_N <= '1';
+			SRAM_LB_N <= '1';
+			SRAM_DQ <= (others => 'Z');
 		elsif rising_edge(clock) then
 			-- Default to inputs
-			SRAM_DQ(7 downto 0) <= (others => 'Z');
+			SRAM_DQ <= (others => 'Z');
 			
 			-- Register SRAM signals to outputs (clock must be at least 2x CPU clock)
 			if vid_clken = '1' then
 				-- Fetch data from previous CPU cycle
+				-- Select upper or lower byte depending on LSb of address
+				SRAM_UB_N <= not cpu_a(0);
+				SRAM_LB_N <= cpu_a(0);
+				SRAM_WE_N <= not sram_write;
 				if rom_enable = '0' then
 					-- Normal RAM access at 0x4000-0xffff
-					SRAM_WE_N <= not ram_write;
-					SRAM_ADDR <= "0" & ram_page & cpu_a(13 downto 0);
+					-- 16-bit address
+					SRAM_ADDR <= "00" & ram_page & cpu_a(13 downto 1);
 				else
 					-- ZXMMC+ external RAM access (8 banks of 16KB)
 					-- at 0x0000-0x3fff
-					SRAM_WE_N <= not (ram_write and zxmmc_wr_en);
-					SRAM_ADDR <= "1" & zxmmc_bank(2 downto 0) & cpu_a(13 downto 0);
+					-- 16-bit address
+					SRAM_ADDR <= "1" & zxmmc_bank(3 downto 0) & cpu_a(13 downto 1);
 				end if;
-				if ram_write = '1' then
+				if sram_write = '1' then
+					SRAM_DQ(15 downto 8) <= cpu_do;
 					SRAM_DQ(7 downto 0) <= cpu_do;
 				end if;
 			else
 				-- Fetch data from previous display cycle
 				-- Because we have time division instead of bus contention
 				-- we don't bother using the vid_rd_n signal from the ULA
+				-- No writes here so just enable both upper and lower bytes and let
+				-- the bus mux select the right one
+				SRAM_UB_N <= '0';
+				SRAM_LB_N <= '0';
 				SRAM_WE_N <= '1';
 				if page_shadow_scr = '1' then
 					-- Video from bank 7 (128K/+3)
-					SRAM_ADDR <= "01110" & vid_a;
+					-- 16-bit address, LSb selects high/low byte
+					SRAM_ADDR <= "001110" & vid_a(12 downto 1);
 				else
 					-- Video from bank 5
-					SRAM_ADDR <= "01010" & vid_a;
+					-- 16-bit address, LSb selects high/low byte
+					SRAM_ADDR <= "001010" & vid_a(12 downto 1);
 				end if;
 			end if;
 		end if;
