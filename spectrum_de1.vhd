@@ -491,7 +491,9 @@ port (
 	ENABLE		:	in	std_logic;
 	-- 0 - W  - Card chip selects (active low)
 	-- 1 - RW - SPI tx/rx data register
-	RS			:	in	std_logic;
+	-- 2 - Not used
+	-- 3 - RW - Paging control register
+	RS			:	in	std_logic_vector(1 downto 0);
 	nWR			:	in	std_logic;
 	DI			:	in	std_logic_vector(7 downto 0);
 	DO			:	out	std_logic_vector(7 downto 0);
@@ -501,7 +503,17 @@ port (
 	SD_CS1		:	out	std_logic;
 	SD_CLK		:	out	std_logic;
 	SD_MOSI		:	out	std_logic;
-	SD_MISO		:	in	std_logic
+	SD_MISO		:	in	std_logic;
+	
+	-- Paging control for external RAM/ROM banks
+	EXT_WR_EN	:	out	std_logic; -- Enable writes to external RAM/ROM
+	EXT_RD_EN	:	out	std_logic; -- Enable reads from external RAM/ROM (overlay internal ROM)
+	EXT_ROM_nRAM	:	out	std_logic; -- Select external ROM or RAM banks
+	EXT_BANK	:	out	std_logic_vector(4 downto 0); -- Selected bank number
+	
+	-- DIP switches (reset values for corresponding bits above)
+	INIT_RD_EN	:	in	std_logic;
+	INIT_ROM_nRAM	:	in	std_logic
 	);
 end component;
 
@@ -582,7 +594,6 @@ signal ula_shadow_vid	:	std_logic;
 signal ula_ram_page	:	std_logic_vector(2 downto 0);
 
 -- ULA video signals
-signal vid_vga		:	std_logic;
 signal vid_a		:	std_logic_vector(12 downto 0);
 signal vid_di		:	std_logic_vector(7 downto 0);
 signal vid_rd_n		:	std_logic;
@@ -621,6 +632,12 @@ signal zxmmc_sclk	:	std_logic;
 signal zxmmc_mosi	:	std_logic;
 signal zxmmc_miso	:	std_logic;
 signal zxmmc_cs0	:	std_logic;
+
+-- ZXMMC+ external ROM/RAM interface (for ResiDOS)
+-- FIXME: Only supporting 8 RAM banks at the moment, no Flash
+signal zxmmc_wr_en	:	std_logic;
+signal zxmmc_rd_en	:	std_logic;
+signal zxmmc_bank	:	std_logic_vector(4 downto 0);
 
 begin
 	-- 28 MHz master clock
@@ -702,7 +719,7 @@ begin
 	-- ULA video
 	vid: video port map (
 		clock, vid_clken, reset_n,
-		vid_vga,
+		SW(7),
 		vid_a, vid_di, vid_rd_n, vid_wait_n,
 		ula_border,
 		vid_r_out, vid_g_out, vid_b_out,
@@ -759,10 +776,13 @@ begin
 	-- ZXMMC interface
 	mmc: zxmmc port map (
 		clock, reset_n, cpu_clken,
-		zxmmc_enable, cpu_a(5), -- A5 selects register
+		zxmmc_enable, cpu_a(6 downto 5), -- A6/A5 selects register
 		cpu_wr_n, cpu_do, zxmmc_do,
 		zxmmc_cs0, open,
-		zxmmc_sclk, zxmmc_mosi, zxmmc_miso
+		zxmmc_sclk, zxmmc_mosi, zxmmc_miso,
+		zxmmc_wr_en, zxmmc_rd_en, open, -- no Flash support for now
+		zxmmc_bank,
+		SW(1), SW(0)
 		);
 	SD_nCS <= zxmmc_cs0;
 	SD_SCLK <= zxmmc_sclk;
@@ -778,10 +798,6 @@ begin
 	pll_reset <= not SW(9);
 	-- System is reset by external reset switch or PLL being out of lock
 	reset_n <= not (pll_reset or not pll_locked);
-	
-	-- Remaining switches
-	-- SW(6) = VGA mode
-	vid_vga <= SW(6);
 	
 	-- Address decoding.  Z80 has separate IO and memory address space
 	-- IO ports (nominal addresses - incompletely decoded):
@@ -838,12 +854,19 @@ begin
 		
 	-- CPU data bus mux
 	cpu_di <=
+		-- System RAM
 		SRAM_DQ(7 downto 0) when ram_enable = '1' else
+		-- External (ZXMMC+) RAM at 0x0000-0x3fff when enabled
+		-- This overlays the internal ROM
+		SRAM_DQ(7 downto 0) when rom_enable = '1' and zxmmc_rd_en = '1' else
+		-- Internal ROM at 0x0000-0x3fff
 		FL_DQ when rom_enable = '1' else
+		-- IO ports
 		ula_do when ula_enable = '1' else
 		psg_do when psg_enable = '1' else
 		zxmmc_do when zxmmc_enable = '1' else
-		(others => '1'); -- Floating bus
+		-- Idle bus
+		(others => '1');
 	
 	-- ROMs are in external flash starting at 0x20000
 	-- (lower addresses contain the BBC ROMs)
@@ -888,8 +911,16 @@ begin
 			-- Register SRAM signals to outputs (clock must be at least 2x CPU clock)
 			if vid_clken = '1' then
 				-- Fetch data from previous CPU cycle
-				SRAM_WE_N <= not ram_write;
-				SRAM_ADDR <= "0" & ram_page & cpu_a(13 downto 0);
+				if rom_enable = '0' then
+					-- Normal RAM access at 0x4000-0xffff
+					SRAM_WE_N <= not ram_write;
+					SRAM_ADDR <= "0" & ram_page & cpu_a(13 downto 0);
+				else
+					-- ZXMMC+ external RAM access (8 banks of 16KB)
+					-- at 0x0000-0x3fff
+					SRAM_WE_N <= not (ram_write and zxmmc_wr_en);
+					SRAM_ADDR <= "1" & zxmmc_bank(2 downto 0) & cpu_a(13 downto 0);
+				end if;
 				if ram_write = '1' then
 					SRAM_DQ(7 downto 0) <= cpu_do;
 				end if;
