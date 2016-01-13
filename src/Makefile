@@ -15,7 +15,7 @@ CFLAGS=-m$(CPU) -DDEBUG=3
 LDFLAGS=-m$(CPU) --code-loc $(ROM_BASE) --data-loc $(RAM_BASE)
 
 # Must be listed first
-OBJS=$(TARGET).o console.o
+OBJS=$(TARGET).rel console.rel
 # Other objects in any order
 #OBJS+=
 
@@ -27,10 +27,12 @@ $(TARGET).hex: $(OBJS)
 	z80-unknown-coff-objcopy -I ihex -O binary --pad-to=$(ROM_SIZE) $(TARGET).hex $(TARGET).bin
 	z80dasm -g 0 -a -l -t $(TARGET).bin > $(TARGET).z80
 	
-%.o: %.c
+%.rel: %.c
 	$(CC) -c $(CFLAGS) $<
 
 
 clean:
-	rm *.asm *.ihx *.lnk *.lst *.map *.o *.sym *.bin *.z80
+	rm -rf *.asm *.ihx *.hex *.lk *.noi *.lst *.map *.rel *.sym *.bin *.z80
+
+.PHONY: clean
 

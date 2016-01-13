@@ -15,7 +15,8 @@
 
 int main(void)
 {
-	int n,m;
+	int n = 0;
+	volatile int m;
 
 	console_cls();
 
@@ -30,6 +31,8 @@ int main(void)
 	TRACE("Entering main loop\n");
 
 	while(1) {
+		INFO("%d\n", n++);
+		for (m = 0; m < 255; m++);
 	}
 	return 0;
 }
